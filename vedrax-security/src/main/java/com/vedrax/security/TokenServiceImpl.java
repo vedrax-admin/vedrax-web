@@ -32,11 +32,13 @@ public class TokenServiceImpl implements TokenService {
      */
     @Override
     public Optional<UserPrincipal> parseToken(String token) {
+      Validate.notNull(token,"token must be provided");
+
         try {
             Claims body = getClaimsWithToken(token);
             UserPrincipal userPrincipal = claimsToPrincipal(body);
             return Optional.of(userPrincipal);
-        } catch (JwtException | ClassCastException e) {
+        } catch (Exception e) {
             return Optional.empty();
         }
     }

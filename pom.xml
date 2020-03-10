@@ -22,6 +22,8 @@
 
   <modules>
     <module>vedrax-security</module>
+      <module>vedrax-descriptor</module>
+      <module>vedrax-util</module>
   </modules>
 
   <dependencyManagement>
