@@ -38,6 +38,7 @@ public class FirstIs<S, T> {
   }
 
   private T castObject() {
+
     return (T) object;
   }
 

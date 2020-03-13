@@ -5,7 +5,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.vedrax</groupId>
   <artifactId>vedrax-web</artifactId>
-  <version>1.0-SNAPSHOT</version>
+  <version>1.0</version>
   <packaging>pom</packaging>
 
   <properties>
@@ -22,8 +22,10 @@
 
   <modules>
     <module>vedrax-security</module>
-      <module>vedrax-descriptor</module>
-      <module>vedrax-util</module>
+    <module>vedrax-descriptor</module>
+    <module>vedrax-util</module>
+    <module>vedrax-jpa</module>
+    <module>vedrax-math</module>
   </modules>
 
   <dependencyManagement>
