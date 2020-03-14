@@ -31,6 +31,13 @@
   <dependencyManagement>
     <dependencies>
 
+      <!-- Compile/runtime dependencies -->
+      <dependency>
+        <groupId>com.google.appengine</groupId>
+        <artifactId>appengine-api-1.0-sdk</artifactId>
+        <version>${appengine.api.version}</version>
+      </dependency>
+
       <!-- Spring boot dependency management -->
       <dependency>
         <groupId>org.springframework.boot</groupId>
