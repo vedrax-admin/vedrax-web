@@ -14,6 +14,8 @@ public class Matrix {
 
   private String key;
 
+  private boolean visible = true;
+
   private List<NVP> entries = new ArrayList<>();
 
   public void addEntry(NVP nvp){
