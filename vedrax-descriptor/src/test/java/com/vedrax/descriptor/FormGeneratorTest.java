@@ -5,6 +5,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.context.MessageSource;
 
+import java.util.Date;
 import java.util.Locale;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -58,6 +59,33 @@ public class FormGeneratorTest {
     assertThat(formDescriptor.getControls().get(3).getControlType()).isEqualTo("select");
     assertThat(formDescriptor.getControls().get(3).getControlOptions()).hasSize(2);
 
+  }
+
+  @Test
+  public void givenSourceWithAuditInfo_whenGenerate_thenGenerateDescriptorWithAuditControls() {
+
+    UserVO userVO = new UserVO();
+    userVO.setEmail("finance@vedrax.com");
+    userVO.setFullName("Remy Penchenat");
+    userVO.setUserRole(UserRole.USER);
+    userVO.setCreatedBy("ADMIN");
+    userVO.setCreatedDate(new Date());
+
+    FormDto formDto = new FormDto();
+    formDto.setDto(UserCreateDto.class);
+    formDto.setSource(userVO);
+    formDto.setEndpoint("endpoint");
+
+    FormDescriptor formDescriptor = formGenerator.generate(formDto, Locale.ENGLISH);
+
+    assertThat(formDescriptor).isNotNull();
+    assertThat(formDescriptor.getControls()).hasSize(6);
+
+    assertThat(formDescriptor.getGroups().get(0).getName()).isEqualTo("Detail");
+    assertThat(formDescriptor.getGroups().get(0).getIds()).containsExactly("email", "password", "fullName", "userRole");
+
+    assertThat(formDescriptor.getGroups().get(1).getName()).isEqualTo("Audit");
+    assertThat(formDescriptor.getGroups().get(1).getIds()).containsExactly("createdDate", "createdBy");
   }
 
 

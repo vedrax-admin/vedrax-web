@@ -3,13 +3,16 @@ package com.vedrax.descriptor;
 import com.vedrax.descriptor.annotations.*;
 import com.vedrax.descriptor.annotations.Properties;
 import com.vedrax.descriptor.components.*;
+import com.vedrax.descriptor.enums.ControlType;
 import com.vedrax.descriptor.enums.ValidationType;
 import com.vedrax.descriptor.lov.EnumWithValue;
 import com.vedrax.descriptor.lov.NVP;
+import com.vedrax.descriptor.util.DateUtil;
 import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.reflect.FieldUtils;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import javax.validation.constraints.*;
 import java.lang.annotation.Annotation;
@@ -37,28 +40,11 @@ public class FormGeneratorImpl implements FormGenerator {
     String method = formDto.getMethod() == null ? "POST" : formDto.getMethod();
 
     FormDescriptor formDescriptor = getFormDescriptor(formDto.getDto());
-    List<FormControlDescriptor> controls = initListOfControlsFromClass(formDto.getDto(), formDto.getSource(), locale);
-    formDescriptor.setControls(controls);
+    initListOfControlsFromClass(formDto.getDto(), formDto.getSource(), formDescriptor, locale);
     formDescriptor.setMethod(method);
     formDescriptor.setEndpoint(formDto.getEndpoint());
 
-    addAuditInformation(formDto.getSource(), formDescriptor);
-
     return formDescriptor;
-  }
-
-  private void addAuditInformation(Object source, FormDescriptor formDescriptor) {
-    if (source == null) {
-      return;
-    }
-
-    AuditDescriptor auditDescriptor = new AuditDescriptor();
-    auditDescriptor.setCreatedDate(getDateField(source, "createdDate"));
-    auditDescriptor.setCreatedBy(getStringField(source, "createdBy"));
-    auditDescriptor.setModifiedDate(getDateField(source, "modifiedDate"));
-    auditDescriptor.setModifiedBy(getStringField(source, "modifiedBy"));
-
-    formDescriptor.setAudit(auditDescriptor);
   }
 
   private FormDescriptor getFormDescriptor(Class<?> dto) {
@@ -93,9 +79,13 @@ public class FormGeneratorImpl implements FormGenerator {
 
   private List<FormControlDescriptor> initListOfControlsFromClass(Class<?> sourceClass,
                                                                   Object source,
+                                                                  FormDescriptor formDescriptor,
                                                                   Locale locale) {
 
     List<FormControlDescriptor> controls = new ArrayList<>();
+
+    //keep track of the controls keys
+    List<String> keys = new ArrayList<>();
 
     String packageName = getPackageNameFromClass(sourceClass);
     Field[] fields = FieldUtils.getAllFields(sourceClass);
@@ -106,13 +96,113 @@ public class FormGeneratorImpl implements FormGenerator {
 
       FormControlDescriptor formControlDescriptor = generateFormControlWithAttribute(packageName, field, hasSource, locale);
       if (formControlDescriptor != null) {
+        keys.add(formControlDescriptor.getControlName());
         setControlValue(source, formControlDescriptor);
         controls.add(formControlDescriptor);
       }
+
     }
+
+    updateControlsWithAudit(source, controls, keys, formDescriptor, locale);
 
     return controls;
   }
+
+  private void updateControlsWithAudit(Object source,
+                                       List<FormControlDescriptor> controls,
+                                       List<String> keys,
+                                       FormDescriptor formDescriptor,
+                                       Locale locale) {
+
+    if (formDescriptor != null) {
+
+      List<String> auditKeys = new ArrayList<>();
+
+      addAuditToControls(source, "createdDate", controls, auditKeys, locale);
+      addAuditToControls(source, "createdBy", controls, auditKeys, locale);
+      addAuditToControls(source, "modifiedDate", controls, auditKeys, locale);
+      addAuditToControls(source, "modifiedBy", controls, auditKeys, locale);
+
+      formDescriptor.setControls(controls);
+
+      addAuditGroup(formDescriptor, keys, auditKeys);
+    }
+
+  }
+
+  private void addAuditToControls(Object source,
+                                  String attributeName,
+                                  List<FormControlDescriptor> controls,
+                                  List<String> auditKeys,
+                                  Locale locale) {
+
+    if (source == null) {
+      return;
+    }
+
+    Optional<Object> fieldOpt = getField(source, attributeName);
+
+    if (fieldOpt.isPresent()) {
+
+      Object field = fieldOpt.get();
+
+      if (field instanceof Date) {
+        controls.add(generateAuditControl(attributeName, DateUtil.dateToISO((Date) field), locale));
+      } else {
+        controls.add(generateAuditControl(attributeName, String.valueOf(field), locale));
+      }
+
+      auditKeys.add(attributeName);
+    }
+
+  }
+
+  /**
+   * Generate audit control
+   *
+   * @param attributeName the audit control name
+   * @param value         the audit control value
+   * @param locale        the provided locale
+   * @return form control descriptor
+   */
+  private FormControlDescriptor generateAuditControl(String attributeName, String value, Locale locale) {
+    FormControlDescriptor formControlDescriptor = new FormControlDescriptor();
+
+    formControlDescriptor.setControlName(attributeName);
+    formControlDescriptor.setControlLabel(getMessageFromKey(attributeName + ".label", null, locale));
+
+    PropertyDescriptor readOnlyProperty = new PropertyDescriptor();
+    readOnlyProperty.setPropertyName("readOnly");
+    readOnlyProperty.setPropertyValue(true);
+
+    formControlDescriptor.addProperty(readOnlyProperty);
+    formControlDescriptor.setControlType(String.valueOf(ControlType.input));
+    formControlDescriptor.setControlValue(value);
+
+    return formControlDescriptor;
+  }
+
+  private void addAuditGroup(FormDescriptor formDescriptor, List<String> keys, List<String> auditKeys) {
+
+    if (!CollectionUtils.isEmpty(auditKeys)) {
+
+      if (CollectionUtils.isEmpty(formDescriptor.getGroups())) {
+        formDescriptor.addGroup(createGroup("Detail", keys));
+      }
+
+      formDescriptor.addGroup(createGroup("Audit", auditKeys));
+
+    }
+
+  }
+
+  private FormGroupDescriptor createGroup(String name, List<String> keys) {
+    FormGroupDescriptor formGroupDescriptor = new FormGroupDescriptor();
+    formGroupDescriptor.setName(name);
+    formGroupDescriptor.setIds(keys);
+    return formGroupDescriptor;
+  }
+
 
   private FormControlDescriptor generateFormControlWithAttribute(String packageName, Field field, boolean onUpdate, Locale locale) {
 
@@ -167,49 +257,9 @@ public class FormGeneratorImpl implements FormGenerator {
   private Optional<Object> getField(Object source, String attributeName) {
     try {
       return Optional.of(FieldUtils.readDeclaredField(source, attributeName, true));
-    } catch (IllegalAccessException | IllegalArgumentException e) {
+    } catch (Exception e) {
       return Optional.empty();
     }
-  }
-
-  private Date getDateField(Object source, String attributeName) {
-
-    Optional<Object> fieldOpt = getField(source, attributeName);
-
-    if (fieldOpt.isPresent()) {
-
-      Object field = fieldOpt.get();
-
-      if (field instanceof Date) {
-        return (Date) field;
-      } else {
-        throw new IllegalArgumentException(attributeName + " is not a date attribute");
-      }
-
-    }
-
-    return null;
-
-  }
-
-  private String getStringField(Object source, String attributeName) {
-
-    Optional<Object> fieldOpt = getField(source, attributeName);
-
-    if (fieldOpt.isPresent()) {
-
-      Object field = fieldOpt.get();
-
-      if (field instanceof String) {
-        return (String) field;
-      } else {
-        throw new IllegalArgumentException(attributeName + " is not a string attribute");
-      }
-
-    }
-
-    return null;
-
   }
 
   private void initControlWithType(Field field, FormControlDescriptor formControlDescriptor) {
@@ -217,13 +267,13 @@ public class FormGeneratorImpl implements FormGenerator {
     Class<?> type = field.getType();
 
     if (Date.class.isAssignableFrom(type)) {
-      formControlDescriptor.setControlType("datepicker");
+      formControlDescriptor.setControlType(String.valueOf(ControlType.datepicker));
     } else if (Integer.class.isAssignableFrom(type)) {
-      formControlDescriptor.setControlType("slider");
+      formControlDescriptor.setControlType(String.valueOf(ControlType.slider));
     } else if (Boolean.class.isAssignableFrom(type)) {
-      formControlDescriptor.setControlType("checkbox");
+      formControlDescriptor.setControlType(String.valueOf(ControlType.checkbox));
     } else {
-      formControlDescriptor.setControlType("input");
+      formControlDescriptor.setControlType(String.valueOf(ControlType.input));
     }
 
   }
@@ -284,9 +334,9 @@ public class FormGeneratorImpl implements FormGenerator {
   }
 
   private void fromChildren(Children children, Locale locale, FormControlDescriptor formControlDescriptor) {
-    List<FormControlDescriptor> controls = initListOfControlsFromClass(children.type(), null, locale);
+    List<FormControlDescriptor> controls = initListOfControlsFromClass(children.type(), null,null, locale);
     formControlDescriptor.setControlChildren(controls);
-    formControlDescriptor.setControlType("arrayOfControls");
+    formControlDescriptor.setControlType(String.valueOf(ControlType.arrayOfControls));
   }
 
   private void fromComponent(Component component, FormControlDescriptor formControlDescriptor) {
