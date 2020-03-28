@@ -13,5 +13,5 @@ import java.util.List;
 public class ColumnDescriptor {
   private String id;
   private String label;
-  private List<ActionDescriptor> actionDescriptors;
+  private List<ActionDescriptor> actions;
 }

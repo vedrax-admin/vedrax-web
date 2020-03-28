@@ -1,5 +1,6 @@
 package com.vedrax.descriptor.components;
 
+import com.vedrax.descriptor.enums.ActionType;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -10,6 +11,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class ActionDescriptor {
   private String label;
-  private String type;
-  private String value;
+  private ActionType action;
+  private String url;
+  private String fragment;
 }

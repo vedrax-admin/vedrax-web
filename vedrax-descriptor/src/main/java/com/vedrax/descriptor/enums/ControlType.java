@@ -11,8 +11,7 @@ public enum ControlType {
   select,
   slider,
   arrayOfControls,
+  search,
   matrix,
-  multiValue,
-  nvp,
-  search
+  nvp
 }

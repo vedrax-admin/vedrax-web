@@ -18,7 +18,6 @@ public class FormDescriptor {
   private String endpoint;
   private String method;
   private String successUrl;
-  private AuditDescriptor audit;
 
   public boolean addControl(FormControlDescriptor formControlDescriptor){
     return controls.add(formControlDescriptor);
