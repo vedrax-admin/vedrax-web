@@ -35,7 +35,7 @@ import static org.springframework.security.config.http.SessionCreationPolicy.STA
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     private static final RequestMatcher PUBLIC_URLS = new OrRequestMatcher(
-            new AntPathRequestMatcher("/api/public/**")
+            new AntPathRequestMatcher("/um/public/**")
     );
 
     private static final RequestMatcher PROTECTED_URLS = new NegatedRequestMatcher(PUBLIC_URLS);
@@ -74,7 +74,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 // authorization requests config
                 .authorizeRequests()
                 // Set Admin URL
-                .antMatchers("/api/administrator/**").hasRole("ADMIN")
+                .antMatchers("/administrator/**").hasRole("ADMIN")
                 // Set other Urls
                 .requestMatchers(PROTECTED_URLS)
                 .authenticated()
