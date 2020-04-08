@@ -6,5 +6,6 @@ package com.vedrax.descriptor.annotations;
 public @interface Action {
   String label();
   String type() default "redirect";
-  String value();
+  String url();
+  String fragment() default "";
 }

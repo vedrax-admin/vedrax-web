@@ -8,6 +8,24 @@
   <version>1.0</version>
   <packaging>pom</packaging>
 
+  <name>Vedrax core</name>
+  <description>The vedrax core provides utilities</description>
+  <url>https://www.vedrax.com</url>
+
+  <licenses>
+    <license>
+      <name>Apache License, Version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+
+  <organization>
+    <name>Vedrax SAS</name>
+    <url>https://www.vedrax.com</url>
+  </organization>
+
+
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
