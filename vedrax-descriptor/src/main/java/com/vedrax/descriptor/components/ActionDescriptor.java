@@ -1,5 +1,6 @@
 package com.vedrax.descriptor.components;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.vedrax.descriptor.enums.ActionType;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -9,6 +10,7 @@ import lombok.NoArgsConstructor;
  */
 @Data
 @NoArgsConstructor
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class ActionDescriptor {
   private String label;
   private ActionType action;

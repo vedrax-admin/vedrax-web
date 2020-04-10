@@ -1,5 +1,6 @@
 package com.vedrax.descriptor.components;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.vedrax.descriptor.lov.NVP;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -12,6 +13,7 @@ import java.util.List;
  */
 @Data
 @NoArgsConstructor
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class FormControlDescriptor {
 
   private String controlName;
