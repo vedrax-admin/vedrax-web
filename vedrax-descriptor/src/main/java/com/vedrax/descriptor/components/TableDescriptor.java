@@ -16,6 +16,7 @@ public class TableDescriptor {
 
   private String title;
   private Boolean paginated;
+  private Boolean loadOnInit;
   private String path;
   private List<FormControlDescriptor> searchControls;
   private List<ColumnDescriptor> columns;
