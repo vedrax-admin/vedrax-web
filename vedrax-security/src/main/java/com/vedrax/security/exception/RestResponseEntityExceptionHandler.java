@@ -111,12 +111,24 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
     return handler(ex, HttpStatus.FORBIDDEN, ex.getMessage());
   }
 
-  @ExceptionHandler({ Exception.class })
+  /**
+   * Handler for 500 errors
+   *
+   * @param ex
+   * @param request
+   * @return
+   */
+  @ExceptionHandler({Exception.class})
   public ResponseEntity<Object> handleAll(Exception ex, WebRequest request) {
+    logger.info(ex.getClass().getName());
+    logger.info(request.getContextPath());
+    logger.error("error", ex);
+
     return handler(ex, HttpStatus.INTERNAL_SERVER_ERROR, "error occurred");
   }
 
   private ResponseEntity<Object> handler(Exception ex, HttpStatus status, String error) {
+
     return new ResponseEntity<Object>(
       toWrapper(status.value(), ex.getLocalizedMessage(), error), new HttpHeaders(), status);
   }
