@@ -9,6 +9,7 @@ import org.springframework.util.Assert;
 import org.springframework.util.ReflectionUtils;
 
 import javax.persistence.EntityManager;
+import javax.persistence.EntityNotFoundException;
 import javax.persistence.Tuple;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.*;
@@ -125,7 +126,7 @@ public class ExtendedRepositoryImpl<T, ID extends Serializable>
     Assert.notNull(id, "An ID must be provided");
 
     return findById(id)
-      .orElseThrow(() -> new IllegalArgumentException(String.format(NOT_FOUND_MESSAGE, id)));
+      .orElseThrow(() -> new EntityNotFoundException(String.format(NOT_FOUND_MESSAGE, id)));
   }
 
   private <R> Root<T> applySpecToCriteria(CriteriaQuery<R> query,

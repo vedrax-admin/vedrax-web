@@ -1,4 +1,4 @@
-package com.vedrax.security.exception;
+package com.vedrax.errorhandling;
 
 /**
  * General business exception

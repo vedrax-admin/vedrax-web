@@ -71,5 +71,4 @@ The modules will be install to your local repository.
 You can also install as a 3rd library:
 
 * run `mvn clean package` at the module level
-* run `cd target`
-* run `mvn install:install-file -Dfile=vedrax-descriptor-1.0.jar -DpomFile=pom.xml`
+* run `mvn install:install-file -Dfile=target/vedrax-descriptor-1.0.jar -DpomFile=pom.xml`
