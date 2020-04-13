@@ -3,16 +3,13 @@ package com.vedrax.errorhandling;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
-import org.springframework.web.servlet.NoHandlerFoundException;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 import javax.persistence.EntityNotFoundException;
@@ -30,9 +27,8 @@ import static org.springframework.http.HttpStatus.BAD_REQUEST;
 public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionHandler {
 
 
-
   /**
-   * When {@link ConstraintViolationException} is thrown, returns HTTP status
+   * When {@link IllegalArgumentException} is thrown, returns HTTP status
    * 400
    *
    * @param ex      the constraint violation exception
@@ -41,7 +37,7 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
    */
   @ExceptionHandler({IllegalArgumentException.class})
   public ResponseEntity<Object> handleIllegalArgumentException(
-    ConstraintViolationException ex, WebRequest request) {
+    IllegalArgumentException ex, WebRequest request) {
 
     ApiError apiError = new ApiError(BAD_REQUEST, ex.getMessage(), ex);
     return buildResponseEntity(apiError);
@@ -94,24 +90,6 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
   }
 
   /**
-   * Handle NoHandlerFoundException.
-   *
-   * @param ex the exception
-   * @param headers the headers
-   * @param status the status
-   * @param request the request
-   * @return response entity
-   */
-  @Override
-  protected ResponseEntity<Object> handleNoHandlerFoundException(
-    NoHandlerFoundException ex, HttpHeaders headers, HttpStatus status, WebRequest request) {
-    ApiError apiError = new ApiError(BAD_REQUEST);
-    apiError.setMessage(String.format("Could not find the %s method for URL %s", ex.getHttpMethod(), ex.getRequestURL()));
-    apiError.setDebugMessage(ex.getMessage());
-    return buildResponseEntity(apiError);
-  }
-
-  /**
    * Handle DataIntegrityViolationException, inspects the cause for different DB causes.
    *
    * @param ex the DataIntegrityViolationException
@@ -142,33 +120,17 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
   }
 
   /**
-   * When {@link UsernameNotFoundException} is thrown, returns HTTP status
-   * 400
-   *
-   * @param ex      the constraint violation exception
-   * @param request the web request
-   * @return the response entity
-   */
-  @ExceptionHandler({UsernameNotFoundException.class})
-  public ResponseEntity<Object> handleUserNotFoundException(
-    ConstraintViolationException ex, WebRequest request) {
-
-    ApiError apiError = new ApiError(HttpStatus.NOT_FOUND, ex.getMessage(), ex);
-    return buildResponseEntity(apiError);
-  }
-
-  /**
    * Handle javax.persistence.EntityNotFoundException
    */
   @ExceptionHandler(EntityNotFoundException.class)
   protected ResponseEntity<Object> handleEntityNotFound(EntityNotFoundException ex) {
-    return buildResponseEntity(new ApiError(HttpStatus.NOT_FOUND, ex));
+    return buildResponseEntity(new ApiError(HttpStatus.NOT_FOUND, ex.getMessage(), ex));
   }
 
   /**
    * Handler for 500 errors
    *
-   * @param ex the exception
+   * @param ex      the exception
    * @param request the request
    * @return ResponseEntity
    */
