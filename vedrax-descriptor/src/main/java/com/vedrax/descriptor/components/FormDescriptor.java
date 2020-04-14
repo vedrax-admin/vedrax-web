@@ -20,6 +20,9 @@ public class FormDescriptor {
   private String endpoint;
   private String method;
   private String successUrl;
+  private String submitLabel;
+  private String cancelLabel;
+  private String successMessage;
 
   public boolean addControl(FormControlDescriptor formControlDescriptor){
     return controls.add(formControlDescriptor);

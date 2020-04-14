@@ -22,6 +22,9 @@ import java.util.*;
 import static com.vedrax.descriptor.typeof.TypeOf.whenTypeOf;
 import static com.vedrax.descriptor.util.DateUtil.dateToISO;
 
+/**
+ * Service used for generating form descriptor
+ */
 @Service
 public class FormGeneratorImpl implements FormGenerator {
 
@@ -31,22 +34,38 @@ public class FormGeneratorImpl implements FormGenerator {
     this.messageSource = messageSource;
   }
 
+  /**
+   * Method for generating the form descriptor
+   *
+   * @param formDto the provided class for generating the descriptor
+   * @param locale  the locale
+   * @return form descriptor
+   */
   public FormDescriptor generate(FormDto formDto, Locale locale) {
     Validate.notNull(formDto, "formDto must be provided");
     Validate.notNull(formDto.getDto(), "dto class must be provided");
     Validate.notNull(formDto.getEndpoint(), "endpoint must be provided");
     Validate.notNull(locale, "locale must be provided");
 
+    //POST is used by default
     String method = formDto.getMethod() == null ? "POST" : formDto.getMethod();
 
     FormDescriptor formDescriptor = getFormDescriptor(formDto.getDto());
     initListOfControlsFromClass(formDto.getDto(), formDto.getSource(), formDescriptor, locale);
+    initFormButtonsLabel(formDescriptor, locale);
+    initSuccessMessage(formDto.getSource(), formDto.getDto(), formDescriptor, locale);
     formDescriptor.setMethod(method);
     formDescriptor.setEndpoint(formDto.getEndpoint());
 
     return formDescriptor;
   }
 
+  /**
+   * Method for initiating a FormDescriptor and its groups
+   *
+   * @param dto the class to generate the descriptor
+   * @return form descriptor
+   */
   private FormDescriptor getFormDescriptor(Class<?> dto) {
     Validate.notNull(dto, "dto class must be provided");
 
@@ -55,6 +74,36 @@ public class FormGeneratorImpl implements FormGenerator {
     return formDescriptor;
   }
 
+  /**
+   * Init form buttons labels
+   *
+   * @param formDescriptor the form descriptor
+   * @param locale         the locale
+   */
+  private void initFormButtonsLabel(FormDescriptor formDescriptor, Locale locale) {
+    formDescriptor.setSubmitLabel(getMessageFromKey("submit.label", null, locale));
+    formDescriptor.setCancelLabel(getMessageFromKey("cancel.label", null, locale));
+  }
+
+  /**
+   * Method for adding success message
+   *
+   * @param source         flag set to true when update
+   * @param dtoClass       the dto class
+   * @param formDescriptor the form descriptor
+   * @param locale         the locale
+   */
+  private void initSuccessMessage(Object source, Class<?> dtoClass, FormDescriptor formDescriptor, Locale locale) {
+    String key = source != null ? "success.update.message" : "success.create.message";
+    formDescriptor.setSuccessMessage(getMessageFromKey(dtoClass.getName() + "." + key, null, locale));
+  }
+
+  /**
+   * Init group of components with Groups annotation
+   *
+   * @param sourceClass    the source which resides the data
+   * @param formDescriptor the form descriptor
+   */
   private void initGroupsFromAnnotation(Class<?> sourceClass, FormDescriptor formDescriptor) {
     Optional<Groups> optionalGroups = getGroupsAnnotation(sourceClass);
     if (optionalGroups.isPresent()) {
@@ -65,11 +114,23 @@ public class FormGeneratorImpl implements FormGenerator {
     }
   }
 
+  /**
+   * Method for getting Groups annotation
+   *
+   * @param dtoClass the dto class
+   * @return the optional Groups
+   */
   private Optional<Groups> getGroupsAnnotation(Class<?> dtoClass) {
     Groups annotation = dtoClass.getDeclaredAnnotation(Groups.class);
     return Optional.ofNullable(annotation);
   }
 
+  /**
+   * Method for creating a group descriptor from annotation
+   *
+   * @param group the group annotation
+   * @return group descriptor
+   */
   private FormGroupDescriptor createGroup(Group group) {
     FormGroupDescriptor formGroupDescriptor = new FormGroupDescriptor();
     formGroupDescriptor.setName(group.name());
@@ -77,6 +138,15 @@ public class FormGeneratorImpl implements FormGenerator {
     return formGroupDescriptor;
   }
 
+  /**
+   * Create the list of controls descriptors using reflection
+   *
+   * @param sourceClass    the dto class
+   * @param source         the object with the data if any
+   * @param formDescriptor the form descriptor
+   * @param locale         the locale
+   * @return list of controls descriptors
+   */
   private List<FormControlDescriptor> initListOfControlsFromClass(Class<?> sourceClass,
                                                                   Object source,
                                                                   FormDescriptor formDescriptor,
@@ -108,6 +178,15 @@ public class FormGeneratorImpl implements FormGenerator {
     return controls;
   }
 
+  /**
+   * Method for incorporating audit information when provided in the data class
+   *
+   * @param source         the data class
+   * @param controls       the list of controls descriptor
+   * @param keys           the controls key. Used to group the audit information in a group
+   * @param formDescriptor the form descriptor
+   * @param locale         the locale
+   */
   private void updateControlsWithAudit(Object source,
                                        List<FormControlDescriptor> controls,
                                        List<String> keys,
@@ -130,6 +209,15 @@ public class FormGeneratorImpl implements FormGenerator {
 
   }
 
+  /**
+   * Method for adding audit information to the list of controls
+   *
+   * @param source        the data source
+   * @param attributeName the audit attribute name
+   * @param controls      the list of controls descriptors
+   * @param auditKeys     the list of audit keys
+   * @param locale        the locale
+   */
   private void addAuditToControls(Object source,
                                   String attributeName,
                                   List<FormControlDescriptor> controls,
@@ -182,6 +270,13 @@ public class FormGeneratorImpl implements FormGenerator {
     return formControlDescriptor;
   }
 
+  /**
+   * Method for adding audit group to descriptor form
+   *
+   * @param formDescriptor the form descriptor
+   * @param keys           the controls keys
+   * @param auditKeys      the audit controls keys
+   */
   private void addAuditGroup(FormDescriptor formDescriptor, List<String> keys, List<String> auditKeys) {
 
     if (!CollectionUtils.isEmpty(auditKeys)) {
@@ -196,6 +291,13 @@ public class FormGeneratorImpl implements FormGenerator {
 
   }
 
+  /**
+   * Method for creating a group
+   *
+   * @param name the group name
+   * @param keys the group keys
+   * @return the group descriptor
+   */
   private FormGroupDescriptor createGroup(String name, List<String> keys) {
     FormGroupDescriptor formGroupDescriptor = new FormGroupDescriptor();
     formGroupDescriptor.setName(name);
@@ -203,8 +305,19 @@ public class FormGeneratorImpl implements FormGenerator {
     return formGroupDescriptor;
   }
 
-
-  private FormControlDescriptor generateFormControlWithAttribute(String packageName, Field field, boolean onUpdate, Locale locale) {
+  /**
+   * Method for generating a form control
+   *
+   * @param packageName the package name of the dto class
+   * @param field       the field of the dto class
+   * @param onUpdate    flag set to true when method is PUT
+   * @param locale      the locale
+   * @return form control descriptor
+   */
+  private FormControlDescriptor generateFormControlWithAttribute(String packageName,
+                                                                 Field field,
+                                                                 boolean onUpdate,
+                                                                 Locale locale) {
 
     if (checkIfAttributeShouldBeExcluded(field, onUpdate)) {
       return null;
@@ -213,10 +326,25 @@ public class FormGeneratorImpl implements FormGenerator {
     return generateFormControlWithAttribute(packageName, field, locale);
   }
 
+  /**
+   * Method for checking if an attribute should be included
+   *
+   * @param field    the field for the dto class
+   * @param onUpdate flag set to true when method is PUT
+   * @return true when add otherwise false
+   */
   private boolean checkIfAttributeShouldBeExcluded(Field field, boolean onUpdate) {
     return onUpdate && field.isAnnotationPresent(Null.class);
   }
 
+  /**
+   * Generate form control with reflection
+   *
+   * @param packageName the package name of the dto class
+   * @param field       the field of the dto class
+   * @param locale      the locale
+   * @return form control descriptor
+   */
   private FormControlDescriptor generateFormControlWithAttribute(String packageName, Field field, Locale locale) {
     FormControlDescriptor formControlDescriptor = new FormControlDescriptor();
 
@@ -230,6 +358,12 @@ public class FormGeneratorImpl implements FormGenerator {
     return formControlDescriptor;
   }
 
+  /**
+   * Method for setting value of the specified control
+   *
+   * @param entity  the data source
+   * @param control the form control descriptor
+   */
   private void setControlValue(Object entity, FormControlDescriptor control) {
 
     //in case entity is not found
@@ -254,6 +388,13 @@ public class FormGeneratorImpl implements FormGenerator {
     }
   }
 
+  /**
+   * Method for getting field from data source
+   *
+   * @param source        the data source
+   * @param attributeName the attribute to search for
+   * @return the retrieved attribute information
+   */
   private Optional<Object> getField(Object source, String attributeName) {
     try {
       return Optional.of(FieldUtils.readDeclaredField(source, attributeName, true));
@@ -262,6 +403,12 @@ public class FormGeneratorImpl implements FormGenerator {
     }
   }
 
+  /**
+   * Init control type
+   *
+   * @param field                 the field of the dto class
+   * @param formControlDescriptor the form control descriptor
+   */
   private void initControlWithType(Field field, FormControlDescriptor formControlDescriptor) {
 
     Class<?> type = field.getType();
@@ -278,6 +425,14 @@ public class FormGeneratorImpl implements FormGenerator {
 
   }
 
+  /**
+   * Init control with annotations
+   *
+   * @param field                 the field of the dto class
+   * @param formControlDescriptor the form control descriptor
+   * @param packageName           the package name
+   * @param locale                the locale
+   */
   private void initControlWithAnnotations(Field field,
                                           FormControlDescriptor formControlDescriptor,
                                           String packageName,
@@ -302,10 +457,24 @@ public class FormGeneratorImpl implements FormGenerator {
 
   }
 
+  /**
+   * Method for generating list of options with the Lov annotation
+   *
+   * @param lov                   the list of values annotation
+   * @param locale                the locale
+   * @param formControlDescriptor the form control descriptor
+   */
   private void fromEnums(Lov lov, Locale locale, FormControlDescriptor formControlDescriptor) {
     generateLOVWithEnums(lov.enumType(), formControlDescriptor, locale);
   }
 
+  /**
+   * Method for generating LOV with the provided enums
+   *
+   * @param enumType              the type of enum
+   * @param formControlDescriptor the form control descriptor
+   * @param locale                the locale
+   */
   private void generateLOVWithEnums(Class<? extends EnumWithValue> enumType,
                                     FormControlDescriptor formControlDescriptor, Locale locale) {
 
@@ -329,26 +498,62 @@ public class FormGeneratorImpl implements FormGenerator {
 
   }
 
+  /**
+   * Method for getting package name with the provided class
+   *
+   * @param clazz the provided class
+   * @return the package name
+   */
   private String getPackageNameFromClass(Class<?> clazz) {
     return clazz.getPackage().getName();
   }
 
+  /**
+   * Method for creating children components
+   *
+   * @param children              the children annotation
+   * @param locale                the locale
+   * @param formControlDescriptor the form control descriptor
+   */
   private void fromChildren(Children children, Locale locale, FormControlDescriptor formControlDescriptor) {
-    List<FormControlDescriptor> controls = initListOfControlsFromClass(children.type(), null,null, locale);
+    List<FormControlDescriptor> controls = initListOfControlsFromClass(children.type(), null, null, locale);
     formControlDescriptor.setControlChildren(controls);
     formControlDescriptor.setControlType(String.valueOf(ControlType.arrayOfControls));
   }
 
+  /**
+   * Method for overriding the control type
+   *
+   * @param component             the component annotation
+   * @param formControlDescriptor the form control descriptor
+   */
   private void fromComponent(Component component, FormControlDescriptor formControlDescriptor) {
     //override the component type by default
     formControlDescriptor.setControlType(component.type());
   }
 
+  /**
+   * Method for including size validation
+   *
+   * @param sizeValidation        the size annotation
+   * @param packageName           the package name
+   * @param locale                the locale
+   * @param formControlDescriptor the form control descriptor
+   */
   private void fromSizeValidation(Size sizeValidation, String packageName, Locale locale, FormControlDescriptor formControlDescriptor) {
     fromValidation(ValidationType.maxlength, sizeValidation.max(), packageName, locale, formControlDescriptor);
     fromValidation(ValidationType.minlength, sizeValidation.min(), packageName, locale, formControlDescriptor);
   }
 
+  /**
+   * Method for adding validation
+   *
+   * @param validationType        the validation type enum
+   * @param value                 the validation value
+   * @param packageName           the package name
+   * @param locale                the locale
+   * @param formControlDescriptor the form control descriptor
+   */
   private void fromValidation(ValidationType validationType,
                               Object value,
                               String packageName,
@@ -367,6 +572,12 @@ public class FormGeneratorImpl implements FormGenerator {
     formControlDescriptor.addValidation(validationDescriptor);
   }
 
+  /**
+   * Method for adding properties value to form control descriptor
+   *
+   * @param listOfProperties      the properties annotation
+   * @param formControlDescriptor the form control descriptor
+   */
   private void fromListOfProperties(Properties listOfProperties, FormControlDescriptor formControlDescriptor) {
     for (Property property : listOfProperties.properties()) {
       PropertyDescriptor propertyDescriptor = new PropertyDescriptor();
@@ -376,11 +587,21 @@ public class FormGeneratorImpl implements FormGenerator {
     }
   }
 
+  /**
+   * Method for getting the message
+   *
+   * @param key    the message key
+   * @param params the parameters if any
+   * @param locale the locale
+   * @return the message
+   */
   private String getMessageFromKey(String key, Object[] params, Locale locale) {
+    Validate.notNull(key, "key must be provided");
+
     try {
       return messageSource.getMessage(key, params, locale);
     } catch (Exception ex) {
-      return null;
+      return key;
     }
   }
 
