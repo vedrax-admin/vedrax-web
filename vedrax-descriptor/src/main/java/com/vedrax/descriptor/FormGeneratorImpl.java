@@ -601,7 +601,7 @@ public class FormGeneratorImpl implements FormGenerator {
     try {
       return messageSource.getMessage(key, params, locale);
     } catch (Exception ex) {
-      return key;
+      return null;
     }
   }
 
