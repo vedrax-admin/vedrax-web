@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -15,5 +16,6 @@ import java.util.List;
 public class ColumnDescriptor {
   private String id;
   private String label;
-  private List<ActionDescriptor> actions;
+  @JsonInclude(JsonInclude.Include.NON_EMPTY)
+  private List<ActionDescriptor> actions = new ArrayList<>();
 }

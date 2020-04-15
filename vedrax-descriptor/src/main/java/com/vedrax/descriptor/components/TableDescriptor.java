@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -18,7 +19,9 @@ public class TableDescriptor {
   private Boolean paginated;
   private Boolean loadOnInit;
   private String path;
-  private List<FormControlDescriptor> searchControls;
-  private List<ColumnDescriptor> columns;
-  private List<?> values;
+  @JsonInclude(JsonInclude.Include.NON_EMPTY)
+  private List<FormControlDescriptor> searchControls = new ArrayList<>();
+  private List<ColumnDescriptor> columns = new ArrayList<>();
+  @JsonInclude(JsonInclude.Include.NON_EMPTY)
+  private List<?> values = new ArrayList<>();
 }

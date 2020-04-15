@@ -22,8 +22,11 @@ public class FormControlDescriptor {
   private String controlType;
   private String controlHint;
   private Object controlValue;
+  @JsonInclude(JsonInclude.Include.NON_EMPTY)
   private List<ValidationDescriptor> controlValidations = new ArrayList<>();
+  @JsonInclude(JsonInclude.Include.NON_EMPTY)
   private List<NVP> controlOptions = new ArrayList<>();
+  @JsonInclude(JsonInclude.Include.NON_EMPTY)
   private List<FormControlDescriptor> controlChildren = new ArrayList<>();
   private String controlDisplayKey;
   private String controlDisplayValue;
