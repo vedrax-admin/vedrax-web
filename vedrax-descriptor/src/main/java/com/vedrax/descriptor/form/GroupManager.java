@@ -27,7 +27,9 @@ public class GroupManager {
    *
    * @return list of groups
    */
-  public List<FormGroupDescriptor> getGroups() {
+  public void init(FormDescriptor formDescriptor) {
+    Validate.notNull(formDescriptor,"form descriptor must be provided");
+    
     List<FormGroupDescriptor> groups = new ArrayList<>();
 
     Optional<Groups> optionalGroups = getGroupsAnnotation(sourceClass);
@@ -38,7 +40,7 @@ public class GroupManager {
       }
     }
 
-    return groups;
+    formDescriptor.setGroups(groups);
   }
 
   /**

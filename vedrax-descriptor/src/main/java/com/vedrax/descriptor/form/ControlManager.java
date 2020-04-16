@@ -37,7 +37,7 @@ public class ControlManager {
     this.locale = locale;
   }
 
-  public List<String> initControls(FormDto formDto, FormDescriptor formDescriptor) {
+  public List<String> init(FormDto formDto, FormDescriptor formDescriptor) {
     Validate.notNull(formDescriptor, "form dto must be provided");
     Validate.notNull(formDescriptor, "form descriptor must be provided");
 

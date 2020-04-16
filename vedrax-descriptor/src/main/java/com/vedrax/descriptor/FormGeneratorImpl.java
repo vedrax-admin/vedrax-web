@@ -42,15 +42,15 @@ public class FormGeneratorImpl implements FormGenerator {
 
     //set group if any
     GroupManager groupManager = new GroupManager(formDto.getDto());
-    formDescriptor.setGroups(groupManager.getGroups());
+    groupManager.init(formDescriptor);
 
     //set controls
     ControlManager controlManager = new ControlManager(messageSource, locale);
-    List<String> controlKeys = controlManager.initControls(formDto, formDescriptor);
+    List<String> controlKeys = controlManager.init(formDto, formDescriptor);
 
     //set audit
     AuditManager auditManager = new AuditManager(messageSource, locale);
-    List<String> auditKeys = auditManager.initAudit(formDto.getSource(), formDescriptor.getControls());
+    List<String> auditKeys = auditManager.init(formDto.getSource(), formDescriptor.getControls());
     groupManager.addAuditToGroups(formDescriptor, controlKeys, auditKeys);
 
     //set button label

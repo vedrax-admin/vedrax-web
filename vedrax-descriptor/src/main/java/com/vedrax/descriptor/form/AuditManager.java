@@ -35,8 +35,8 @@ public class AuditManager {
    * @param source         the data class
    * @param controls       the list of controls descriptor
    */
-  public List<String> initAudit(Object source,
-                                List<FormControlDescriptor> controls) {
+  public List<String> init(Object source,
+                           List<FormControlDescriptor> controls) {
     Validate.notNull(controls, "controls must be provided");
 
     List<String> auditKeys = new ArrayList<>();
