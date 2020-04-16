@@ -1,5 +1,6 @@
 package com.vedrax.descriptor.components;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -8,6 +9,7 @@ import lombok.NoArgsConstructor;
  */
 @Data
 @NoArgsConstructor
+@AllArgsConstructor
 public class PropertyDescriptor {
   private String propertyName;
   private Object propertyValue;
