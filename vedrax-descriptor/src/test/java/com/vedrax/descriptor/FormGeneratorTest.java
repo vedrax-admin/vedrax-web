@@ -88,5 +88,31 @@ public class FormGeneratorTest {
     //assertThat(formDescriptor.getGroups().get(1).getIds()).containsExactly("createdDate", "createdBy");
   }
 
+  @Test
+  public void test(){
+
+    AssessmentEquipmentEntityVO assessmentEquipment = new AssessmentEquipmentEntityVO();
+    assessmentEquipment.setId(1L);
+    assessmentEquipment.setDesignation("designation");
+    assessmentEquipment.setControlDate(new Date());
+    assessmentEquipment.setPeriodicityValue(1);
+    assessmentEquipment.setWithUncertainty(true);
+    assessmentEquipment.setActive(true);
+    assessmentEquipment.setCreatedDate(new Date());
+    assessmentEquipment.setCreatedBy("remy");
+
+    String url = String.format("%s/%s", "/test", assessmentEquipment.getId());
+
+    FormDto formDto = new FormDto();
+    formDto.setMethod("PUT");
+    formDto.setEndpoint(url);
+    formDto.setSource(assessmentEquipment);
+    formDto.setDto(AssessmentEquipmentDto.class);
+
+    FormDescriptor formDescriptor = formGenerator.generate(formDto, null);
+
+    assertThat(formDescriptor).isNotNull();
+  }
+
 
 }

@@ -32,8 +32,13 @@ public class DateUtil {
     if (date == null) {
       return null;
     }
-    LocalDate localDate = convertToLocalDate(date);
-    return localDate.toString();
+
+    try {
+      return convertToLocalDate(date).toString();
+    }catch(Exception ex){
+      throw new IllegalArgumentException("pb date");
+    }
+
   }
 
 }

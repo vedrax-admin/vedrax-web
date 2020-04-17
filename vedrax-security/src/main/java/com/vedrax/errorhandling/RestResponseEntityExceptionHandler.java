@@ -138,7 +138,7 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
   public ResponseEntity<Object> handleAll(Exception ex, WebRequest request) {
     logger.info(ex.getClass().getName());
     logger.info(request.getContextPath());
-    logger.error("error", ex);
+    logger.warn("error", ex);
 
     ApiError apiError = new ApiError(HttpStatus.INTERNAL_SERVER_ERROR, ex);
     return buildResponseEntity(apiError);

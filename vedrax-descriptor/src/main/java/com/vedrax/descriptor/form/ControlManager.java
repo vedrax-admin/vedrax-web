@@ -25,7 +25,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.vedrax.descriptor.typeof.TypeOf.whenTypeOf;
-import static com.vedrax.descriptor.util.DateUtil.dateToISO;
 
 public class ControlManager {
 
@@ -38,7 +37,7 @@ public class ControlManager {
   }
 
   public List<String> init(FormDto formDto, FormDescriptor formDescriptor) {
-    Validate.notNull(formDescriptor, "form dto must be provided");
+    Validate.notNull(formDto, "form dto must be provided");
     Validate.notNull(formDescriptor, "form descriptor must be provided");
 
     List<FormControlDescriptor> controls = getControls(formDto.getDto(), formDto.getSource());
@@ -69,6 +68,7 @@ public class ControlManager {
 
       FormControlDescriptor formControlDescriptor = generateFormControlWithAttribute(field, hasSource, packageName);
       if (formControlDescriptor != null) {
+
         initControlWithType(field, formControlDescriptor);
         initControlWithAnnotations(field, formControlDescriptor, packageName);
         setControlValue(source, formControlDescriptor);
@@ -105,6 +105,7 @@ public class ControlManager {
     return hasSource && field.isAnnotationPresent(Null.class);
   }
 
+
   /**
    * Generate form control with reflection
    *
@@ -120,6 +121,44 @@ public class ControlManager {
     formControlDescriptor.setControlLabel(MessageUtil.getMessageFromKey(messageSource, controlKey + ".label", null, locale));
     formControlDescriptor.setControlHint(MessageUtil.getMessageFromKey(messageSource, controlKey + ".hint", null, locale));
     return formControlDescriptor;
+  }
+
+  /**
+   * Init control type
+   *
+   * @param field                 the field of the dto class
+   * @param formControlDescriptor the form control descriptor
+   */
+  public void initControlWithType(Field field, FormControlDescriptor formControlDescriptor) {
+
+    Class<?> type = field.getType();
+
+    if (Date.class.isAssignableFrom(type)) {
+      formControlDescriptor.setControlType(String.valueOf(ControlType.datepicker));
+    } else if (Integer.class.isAssignableFrom(type)) {
+      setAsNumber(formControlDescriptor);
+    } else if (Double.class.isAssignableFrom(type)) {
+      setAsNumber(formControlDescriptor);
+    } else if (BigDecimal.class.isAssignableFrom(type)) {
+      setAsNumber(formControlDescriptor);
+    } else if (Boolean.class.isAssignableFrom(type)) {
+      formControlDescriptor.setControlType(String.valueOf(ControlType.checkbox));
+    } else {
+      formControlDescriptor.setControlType(String.valueOf(ControlType.input));
+    }
+
+  }
+
+  /**
+   * Create number property
+   */
+  private void setAsNumber(FormControlDescriptor formControlDescriptor) {
+    PropertyDescriptor propertyDescriptor = new PropertyDescriptor();
+    propertyDescriptor.setPropertyName("type");
+    propertyDescriptor.setPropertyValue("number");
+
+    formControlDescriptor.setControlType(String.valueOf(ControlType.input));
+    formControlDescriptor.addProperty(propertyDescriptor);
   }
 
   /**
@@ -143,13 +182,10 @@ public class ControlManager {
 
       Object field = fieldOpt.get();
 
-      if (field instanceof Date) {
-        control.setControlValue(dateToISO((Date) field));
-      } else {
-        control.setControlValue(field);
-      }
+      control.setControlValue(field);
 
     }
+
   }
 
   /**
@@ -292,41 +328,4 @@ public class ControlManager {
     }
   }
 
-  /**
-   * Init control type
-   *
-   * @param field                 the field of the dto class
-   * @param formControlDescriptor the form control descriptor
-   */
-  public void initControlWithType(Field field, FormControlDescriptor formControlDescriptor) {
-
-    Class<?> type = field.getType();
-
-    if (Date.class.isAssignableFrom(type)) {
-      formControlDescriptor.setControlType(String.valueOf(ControlType.datepicker));
-    } else if (Integer.class.isAssignableFrom(type)) {
-      setAsNumber(formControlDescriptor);
-    } else if (Double.class.isAssignableFrom(type)) {
-      setAsNumber(formControlDescriptor);
-    } else if (BigDecimal.class.isAssignableFrom(type)) {
-      setAsNumber(formControlDescriptor);
-    } else if (Boolean.class.isAssignableFrom(type)) {
-      formControlDescriptor.setControlType(String.valueOf(ControlType.checkbox));
-    } else {
-      formControlDescriptor.setControlType(String.valueOf(ControlType.input));
-    }
-
-  }
-
-  /**
-   * Create number property
-   */
-  private void setAsNumber(FormControlDescriptor formControlDescriptor) {
-    PropertyDescriptor propertyDescriptor = new PropertyDescriptor();
-    propertyDescriptor.setPropertyName("type");
-    propertyDescriptor.setPropertyValue("number");
-
-    formControlDescriptor.setControlType(String.valueOf(ControlType.input));
-    formControlDescriptor.addProperty(propertyDescriptor);
-  }
 }

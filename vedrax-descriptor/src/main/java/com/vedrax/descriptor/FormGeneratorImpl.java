@@ -34,7 +34,8 @@ public class FormGeneratorImpl implements FormGenerator {
     Validate.notNull(formDto, "formDto must be provided");
     Validate.notNull(formDto.getDto(), "dto class must be provided");
     Validate.notNull(formDto.getEndpoint(), "endpoint must be provided");
-    Validate.notNull(locale, "locale must be provided");
+
+    locale = locale == null ? Locale.ENGLISH : locale;
 
     FormDescriptor formDescriptor = new FormDescriptor();
     formDescriptor.setMethod(formDto.getMethod() == null ? "POST" : formDto.getMethod());
