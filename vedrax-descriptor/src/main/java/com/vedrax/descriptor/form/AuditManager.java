@@ -3,7 +3,6 @@ package com.vedrax.descriptor.form;
 import com.vedrax.descriptor.components.FormControlDescriptor;
 import com.vedrax.descriptor.components.PropertyDescriptor;
 import com.vedrax.descriptor.enums.ControlType;
-import com.vedrax.descriptor.util.DateUtil;
 import com.vedrax.descriptor.util.MessageUtil;
 import com.vedrax.descriptor.util.ReflectUtil;
 import org.apache.commons.lang3.Validate;
@@ -71,13 +70,7 @@ public class AuditManager {
 
     if (fieldOpt.isPresent()) {
 
-      Object field = fieldOpt.get();
-
-      if (field instanceof Date) {
-        controls.add(generateAuditControl(attributeName, DateUtil.dateToISO((Date) field)));
-      } else {
-        controls.add(generateAuditControl(attributeName, String.valueOf(field)));
-      }
+      controls.add(generateAuditControl(attributeName, fieldOpt.get()));
 
       auditKeys.add(attributeName);
     }
@@ -91,7 +84,7 @@ public class AuditManager {
    * @param value         the audit control value
    * @return form control descriptor
    */
-  private FormControlDescriptor generateAuditControl(String attributeName, String value) {
+  private FormControlDescriptor generateAuditControl(String attributeName, Object value) {
     FormControlDescriptor formControlDescriptor = new FormControlDescriptor();
 
     formControlDescriptor.setControlName(attributeName);

@@ -178,13 +178,7 @@ public class ControlManager {
 
     Optional<Object> fieldOpt = ReflectUtil.getField(entity, controlName);
 
-    if (fieldOpt.isPresent()) {
-
-      Object field = fieldOpt.get();
-
-      control.setControlValue(field);
-
-    }
+    fieldOpt.ifPresent(control::setControlValue);
 
   }
 
