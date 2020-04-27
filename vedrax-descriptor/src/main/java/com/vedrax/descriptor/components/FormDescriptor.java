@@ -18,6 +18,8 @@ public class FormDescriptor {
   private List<FormControlDescriptor> controls = new ArrayList<>();
   @JsonInclude(JsonInclude.Include.NON_EMPTY)
   private List<FormGroupDescriptor> groups = new ArrayList<>();
+  @JsonInclude(JsonInclude.Include.NON_EMPTY)
+  private List<EndpointDescriptor> lovs = new ArrayList<>();
   private String endpoint;
   private String method;
   private String successUrl;

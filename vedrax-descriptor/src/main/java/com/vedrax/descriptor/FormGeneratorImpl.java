@@ -3,6 +3,7 @@ package com.vedrax.descriptor;
 import com.vedrax.descriptor.components.*;
 import com.vedrax.descriptor.form.AuditManager;
 import com.vedrax.descriptor.form.ControlManager;
+import com.vedrax.descriptor.form.EndpointManager;
 import com.vedrax.descriptor.form.GroupManager;
 import com.vedrax.descriptor.util.MessageUtil;
 import org.apache.commons.lang3.Validate;
@@ -44,6 +45,10 @@ public class FormGeneratorImpl implements FormGenerator {
     //set group if any
     GroupManager groupManager = new GroupManager(formDto.getDto());
     groupManager.init(formDescriptor);
+
+    //set LOVs if any
+    EndpointManager endpointManager = new EndpointManager(formDto.getDto());
+    endpointManager.init(formDescriptor);
 
     //set controls
     ControlManager controlManager = new ControlManager(messageSource, locale);
