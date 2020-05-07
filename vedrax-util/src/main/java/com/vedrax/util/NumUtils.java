@@ -39,8 +39,8 @@ public class NumUtils {
     }
   }
 
-  public static void ValidateLessThan(BigDecimal number, String controlNumber,
-                                      String message) {
+  public static void assertLessThan(BigDecimal number, String controlNumber,
+                                    String message) {
     Validate.notNull(number, "number must be provided");
     Validate.notNull(controlNumber, "control number must be provided");
     Validate.notNull(message, "message must be provided");
@@ -50,8 +50,8 @@ public class NumUtils {
     }
   }
 
-  public static void ValidateEqual(BigDecimal number, String controlNumber,
-                                   String message) {
+  public static void assertEqual(BigDecimal number, String controlNumber,
+                                 String message) {
     Validate.notNull(number, "number must be provided");
     Validate.notNull(controlNumber, "control number must be provided");
     Validate.notNull(message, "message must be provided");
@@ -64,7 +64,7 @@ public class NumUtils {
   public static BigDecimal addPercentageToNumber(BigDecimal number, BigDecimal percent) {
     assertGreaterThan(number, "0.0", "number must be greater than 0.0");
     assertGreaterThan(percent, "0.0", "percent must be greater than 0.0");
-    ValidateLessThan(percent, "1.0", "percent must be less than 1.0");
+    assertLessThan(percent, "1.0", "percent must be less than 1.0");
 
     return number.multiply(BigDecimal.ONE.add(percent)).setScale(2, BigDecimal.ROUND_HALF_EVEN);
 

@@ -15,6 +15,7 @@ import java.util.List;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class FormDescriptor {
 
+  private String title;
   private List<FormControlDescriptor> controls = new ArrayList<>();
   @JsonInclude(JsonInclude.Include.NON_EMPTY)
   private List<FormGroupDescriptor> groups = new ArrayList<>();
@@ -26,6 +27,7 @@ public class FormDescriptor {
   private String submitLabel;
   private String cancelLabel;
   private String successMessage;
+  private Boolean updateTable;
 
   public boolean addControl(FormControlDescriptor formControlDescriptor){
     return controls.add(formControlDescriptor);
