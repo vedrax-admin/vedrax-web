@@ -337,11 +337,25 @@ public class ControlManager {
     tableDescriptor.setLoadOnInit(false);
     tableDescriptor.setPath(search.endpoint());
     tableDescriptor.setColumns(getColumns(search.vo()));
-    tableDescriptor.setSearchControls(getControls(search.form(), null));
+    tableDescriptor.setSearch(getSearchDescriptor(search.form()));
 
     formControlDescriptor.setControlType(String.valueOf(ControlType.search));
     formControlDescriptor.setControlSearch(tableDescriptor);
 
+  }
+
+  /**
+   * Get search descriptor
+   *
+   * @param form the search form
+   * @return the search descriptor
+   */
+  private SearchDescriptor getSearchDescriptor(Class<?> form) {
+    SearchDescriptor searchDescriptor = new SearchDescriptor();
+    searchDescriptor.setSearchControls(getControls(form, null));
+    EndpointManager endpointManager = new EndpointManager(form);
+    endpointManager.init(searchDescriptor);
+    return searchDescriptor;
   }
 
   /**
@@ -376,7 +390,7 @@ public class ControlManager {
 
   }
 
-  private ColumnDescriptor getActionColumn(){
+  private ColumnDescriptor getActionColumn() {
     ColumnDescriptor columnDescriptor = new ColumnDescriptor();
     columnDescriptor.setId("actionSearch");
     columnDescriptor.setLabel(MessageUtil.getMessageFromKey(messageSource, "actions.label", null, locale));
@@ -384,7 +398,7 @@ public class ControlManager {
     return columnDescriptor;
   }
 
-  private List<ActionDescriptor> getActions(){
+  private List<ActionDescriptor> getActions() {
     List<ActionDescriptor> actions = new ArrayList<>();
     ActionDescriptor actionDescriptor = new ActionDescriptor();
     actionDescriptor.setLabel(MessageUtil.getMessageFromKey(messageSource, "selection.label", null, locale));

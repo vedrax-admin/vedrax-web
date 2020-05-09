@@ -4,6 +4,7 @@ import com.vedrax.descriptor.annotations.Endpoint;
 import com.vedrax.descriptor.annotations.Endpoints;
 import com.vedrax.descriptor.components.EndpointDescriptor;
 import com.vedrax.descriptor.components.FormDescriptor;
+import com.vedrax.descriptor.components.SearchDescriptor;
 import org.apache.commons.lang3.Validate;
 
 import java.util.*;
@@ -18,14 +19,20 @@ public class EndpointManager {
     this.sourceClass = sourceClass;
   }
 
-  /**
-   * Method for getting groups
-   *
-   * @return list of groups
-   */
   public void init(FormDescriptor formDescriptor) {
     Validate.notNull(formDescriptor,"form descriptor must be provided");
 
+    formDescriptor.setLovs(getEndpoints());
+  }
+
+  public void init(SearchDescriptor searchDescriptor){
+    Validate.notNull(searchDescriptor,"search descriptor must be provided");
+
+    searchDescriptor.setLovs(getEndpoints());
+
+  }
+
+  private List<EndpointDescriptor> getEndpoints(){
     List<EndpointDescriptor> endpoints = new ArrayList<>();
 
     Optional<Endpoints> optionalGroups = getEndpointsAnnotation(sourceClass);
@@ -35,8 +42,7 @@ public class EndpointManager {
         endpoints.add(endpointDescriptor);
       }
     }
-
-    formDescriptor.setLovs(endpoints);
+    return endpoints;
   }
 
   /**
