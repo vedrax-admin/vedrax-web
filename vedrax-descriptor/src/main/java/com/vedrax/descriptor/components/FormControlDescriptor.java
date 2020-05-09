@@ -28,8 +28,6 @@ public class FormControlDescriptor {
   private List<NVP> controlOptions = new ArrayList<>();
   @JsonInclude(JsonInclude.Include.NON_EMPTY)
   private List<FormControlDescriptor> controlChildren = new ArrayList<>();
-  private String controlDisplayKey;
-  private String controlDisplayValue;
   private TableDescriptor controlSearch;
 
   public boolean addProperty(PropertyDescriptor propertyDescriptor) {

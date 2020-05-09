@@ -9,6 +9,7 @@ public enum ControlType {
   input,
   radioButton,
   select,
+  multiple,
   slider,
   arrayOfControls,
   search,

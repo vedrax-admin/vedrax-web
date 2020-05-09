@@ -3,10 +3,8 @@ package com.vedrax.descriptor.form;
 import com.vedrax.descriptor.FormDto;
 import com.vedrax.descriptor.annotations.*;
 import com.vedrax.descriptor.annotations.Properties;
-import com.vedrax.descriptor.components.FormControlDescriptor;
-import com.vedrax.descriptor.components.FormDescriptor;
-import com.vedrax.descriptor.components.PropertyDescriptor;
-import com.vedrax.descriptor.components.ValidationDescriptor;
+import com.vedrax.descriptor.components.*;
+import com.vedrax.descriptor.enums.ActionType;
 import com.vedrax.descriptor.enums.ControlType;
 import com.vedrax.descriptor.enums.ValidationType;
 import com.vedrax.descriptor.lov.EnumWithValue;
@@ -115,7 +113,7 @@ public class ControlManager {
   private FormControlDescriptor initFormControl(Field field, String packageName) {
     FormControlDescriptor formControlDescriptor = new FormControlDescriptor();
 
-    String controlKey = packageName + "." + field.getName();
+    String controlKey = String.format("%s.%s", packageName, field.getName());
 
     formControlDescriptor.setControlName(field.getName());
     formControlDescriptor.setControlLabel(MessageUtil.getMessageFromKey(messageSource, controlKey + ".label", null, locale));
@@ -205,6 +203,7 @@ public class ControlManager {
         .is(Max.class).then(validation -> fromValidation(ValidationType.max, validation.value(), formControlDescriptor, packageName))
         .is(NotEmpty.class).then(validation -> fromValidation(ValidationType.required, true, formControlDescriptor, packageName))
         .is(NotBlank.class).then(validation -> fromValidation(ValidationType.required, true, formControlDescriptor, packageName))
+        .is(Search.class).then(search -> fromSearch(search, formControlDescriptor))
         .is(Pattern.class).then(validation -> fromValidation(ValidationType.pattern, validation.regexp(), formControlDescriptor, packageName));
     }
 
@@ -295,7 +294,7 @@ public class ControlManager {
                               FormControlDescriptor formControlDescriptor,
                               String packageName) {
 
-    String messageKey = packageName + "." + formControlDescriptor.getControlName() + "." + validationType;
+    String messageKey = String.format("%s.%s.%s", packageName, formControlDescriptor.getControlName(), validationType);
     ValidationDescriptor validationDescriptor = new ValidationDescriptor();
     validationDescriptor.setValidationName(validationType.getName());
     validationDescriptor.setValidationValue(value);
@@ -320,6 +319,78 @@ public class ControlManager {
       propertyDescriptor.setPropertyValue(property.propertyValue());
       formControlDescriptor.addProperty(propertyDescriptor);
     }
+  }
+
+  /**
+   * Method for creating search control
+   *
+   * @param search                the search annotation
+   * @param formControlDescriptor the form control descriptor
+   */
+  private void fromSearch(Search search, FormControlDescriptor formControlDescriptor) {
+
+    String packageName = search.vo().getPackage().getName();
+
+    TableDescriptor tableDescriptor = new TableDescriptor();
+    tableDescriptor.setTitle(MessageUtil.getMessageFromKey(messageSource, packageName + ".title", null, locale));
+    tableDescriptor.setPaginated(true);
+    tableDescriptor.setLoadOnInit(false);
+    tableDescriptor.setPath(search.endpoint());
+    tableDescriptor.setColumns(getColumns(search.vo()));
+    tableDescriptor.setSearchControls(getControls(search.form(), null));
+
+    formControlDescriptor.setControlType(String.valueOf(ControlType.search));
+    formControlDescriptor.setControlSearch(tableDescriptor);
+
+  }
+
+  /**
+   * Method for getting the search columns
+   *
+   * @param vo the applied VO
+   * @return list of columns info
+   */
+  private List<ColumnDescriptor> getColumns(Class<?> vo) {
+
+    String packageName = vo.getPackage().getName();
+
+    List<ColumnDescriptor> columns = new ArrayList<>();
+
+    Field[] fields = FieldUtils.getAllFields(vo);
+
+    for (Field field : fields) {
+
+      String labelKey = String.format("%s.%s.label", packageName, field.getName());
+
+      ColumnDescriptor columnDescriptor = new ColumnDescriptor();
+      columnDescriptor.setId(field.getName());
+      columnDescriptor.setLabel(MessageUtil.getMessageFromKey(messageSource, labelKey, null, locale));
+      columns.add(columnDescriptor);
+
+    }
+
+    //append action column
+    columns.add(getActionColumn());
+
+    return columns;
+
+  }
+
+  private ColumnDescriptor getActionColumn(){
+    ColumnDescriptor columnDescriptor = new ColumnDescriptor();
+    columnDescriptor.setId("actionSearch");
+    columnDescriptor.setLabel(MessageUtil.getMessageFromKey(messageSource, "actions.label", null, locale));
+    columnDescriptor.setActions(getActions());
+    return columnDescriptor;
+  }
+
+  private List<ActionDescriptor> getActions(){
+    List<ActionDescriptor> actions = new ArrayList<>();
+    ActionDescriptor actionDescriptor = new ActionDescriptor();
+    actionDescriptor.setLabel(MessageUtil.getMessageFromKey(messageSource, "selection.label", null, locale));
+    actionDescriptor.setAction(ActionType.select);
+    actions.add(actionDescriptor);
+    return actions;
   }
 
 }
