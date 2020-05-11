@@ -3,17 +3,25 @@ package com.vedrax.errorhandling;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.validation.FieldError;
+import org.springframework.validation.ObjectError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 import javax.persistence.EntityNotFoundException;
+import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 
@@ -26,6 +34,25 @@ import static org.springframework.http.HttpStatus.BAD_REQUEST;
 @Order(Ordered.HIGHEST_PRECEDENCE)
 public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionHandler {
 
+  @Override
+  protected ResponseEntity<Object> handleMethodArgumentNotValid(
+    MethodArgumentNotValidException ex,
+    HttpHeaders headers,
+    HttpStatus status,
+    WebRequest request) {
+    List<String> errors = new ArrayList<String>();
+    for (FieldError error : ex.getBindingResult().getFieldErrors()) {
+      errors.add(error.getField() + ": " + error.getDefaultMessage());
+    }
+    for (ObjectError error : ex.getBindingResult().getGlobalErrors()) {
+      errors.add(error.getObjectName() + ": " + error.getDefaultMessage());
+    }
+
+    ApiError apiError =
+      new ApiError(HttpStatus.BAD_REQUEST, ex.getLocalizedMessage(), errors);
+    return handleExceptionInternal(
+      ex, apiError, headers, apiError.getStatus(), request);
+  }
 
   /**
    * When {@link IllegalArgumentException} is thrown, returns HTTP status
@@ -51,11 +78,17 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
    * @param request the web request
    * @return the response entity
    */
-  @ExceptionHandler({ConstraintViolationException.class})
+  @ExceptionHandler({ ConstraintViolationException.class })
   public ResponseEntity<Object> handleConstraintViolation(
     ConstraintViolationException ex, WebRequest request) {
+    List<String> errors = new ArrayList<String>();
+    for (ConstraintViolation<?> violation : ex.getConstraintViolations()) {
+      errors.add(violation.getRootBeanClass().getName() + " " +
+        violation.getPropertyPath() + ": " + violation.getMessage());
+    }
 
-    ApiError apiError = new ApiError(BAD_REQUEST, "Validation error", ex);
+    ApiError apiError =
+      new ApiError(HttpStatus.BAD_REQUEST, ex.getLocalizedMessage(), errors);
     return buildResponseEntity(apiError);
   }
 
@@ -138,7 +171,7 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
   public ResponseEntity<Object> handleAll(Exception ex, WebRequest request) {
     logger.info(ex.getClass().getName());
     logger.info(request.getContextPath());
-    logger.warn("error", ex);
+    logger.error("error", ex);
 
     ApiError apiError = new ApiError(HttpStatus.INTERNAL_SERVER_ERROR, ex);
     return buildResponseEntity(apiError);

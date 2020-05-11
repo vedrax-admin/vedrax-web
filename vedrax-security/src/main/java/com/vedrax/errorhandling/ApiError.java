@@ -5,6 +5,8 @@ import lombok.Data;
 import org.springframework.http.HttpStatus;
 
 import java.time.LocalDateTime;
+import java.util.Arrays;
+import java.util.List;
 
 @Data
 public class ApiError {
@@ -14,6 +16,7 @@ public class ApiError {
   private LocalDateTime timestamp;
   private String message;
   private String debugMessage;
+  private List<String> errors;
 
   private ApiError() {
     timestamp = LocalDateTime.now();
@@ -36,6 +39,20 @@ public class ApiError {
     this.status = status;
     this.message = message;
     this.debugMessage = ex.getLocalizedMessage();
+  }
+
+  public ApiError(HttpStatus status, String message, List<String> errors) {
+    super();
+    this.status = status;
+    this.message = message;
+    this.errors = errors;
+  }
+
+  public ApiError(HttpStatus status, String message, String error) {
+    super();
+    this.status = status;
+    this.message = message;
+    errors = Arrays.asList(error);
   }
 
 }
