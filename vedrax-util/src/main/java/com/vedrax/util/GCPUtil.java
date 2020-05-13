@@ -1,5 +1,6 @@
 package com.vedrax.util;
 
+import com.google.appengine.api.taskqueue.RetryOptions;
 import org.apache.commons.lang3.Validate;
 import com.google.appengine.api.taskqueue.Queue;
 import com.google.appengine.api.taskqueue.QueueFactory;
@@ -14,7 +15,9 @@ public class GCPUtil {
     Validate.notEmpty(params, "params must be provided");
 
     Queue queue = QueueFactory.getDefaultQueue();
-    TaskOptions options = TaskOptions.Builder.withUrl(endpoint);
+    TaskOptions options = TaskOptions.Builder.withUrl(endpoint).retryOptions(
+      RetryOptions.Builder.withTaskRetryLimit(10)
+    );
     params.forEach(options::param);
     queue.add(options);
   }
