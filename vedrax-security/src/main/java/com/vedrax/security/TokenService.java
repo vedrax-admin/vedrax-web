@@ -18,6 +18,13 @@ public interface TokenService {
   String createToken(UserPrincipal user);
 
   /**
+   * Get admin JWT
+   *
+   * @return
+   */
+  String getAdminToken();
+
+  /**
    * Parse specified String as a JWT token.
    *
    * @param token the JWT token to parse
