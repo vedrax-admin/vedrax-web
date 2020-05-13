@@ -278,8 +278,13 @@ public class ControlManager {
    * @param formControlDescriptor the form control descriptor
    */
   private void fromSizeValidation(Size sizeValidation, FormControlDescriptor formControlDescriptor, String packageName) {
-    fromValidation(ValidationType.maxlength, sizeValidation.max(), formControlDescriptor, packageName);
-    fromValidation(ValidationType.minlength, sizeValidation.min(), formControlDescriptor, packageName);
+    if (sizeValidation.max() > 0) {
+      fromValidation(ValidationType.maxlength, sizeValidation.max(), formControlDescriptor, packageName);
+    }
+
+    if (sizeValidation.min() > 0) {
+      fromValidation(ValidationType.minlength, sizeValidation.min(), formControlDescriptor, packageName);
+    }
   }
 
   /**
