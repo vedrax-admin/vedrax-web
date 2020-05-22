@@ -9,22 +9,20 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class TokenServiceTest {
 
-  private TokenService tokenService;
-
   @Before
   public void setUp() {
-    tokenService = new TokenServiceImpl();
+
   }
 
   @Test
   public void givenPrincipal_whenCreateToken_thenReturnJWT(){
     UserPrincipal userPrincipal = new UserPrincipal("finance@vedrax.com","Remy Penchenat","ADMIN");
 
-    String token = tokenService.createToken(userPrincipal);
+    String token = TokenUtility.createToken(userPrincipal);
 
     assertThat(token).isNotNull();
 
-    Optional<UserPrincipal> returnPrincipal = tokenService.parseToken(token);
+    Optional<UserPrincipal> returnPrincipal = TokenUtility.parseToken(token);
 
     assertThat(returnPrincipal.isPresent()).isTrue();
   }
@@ -32,21 +30,21 @@ public class TokenServiceTest {
   @Test
   public void givenInvalidToken_whenParseToken_thenReturnNoJWT(){
 
-    Optional<UserPrincipal> returnPrincipal = tokenService.parseToken("invalid");
+    Optional<UserPrincipal> returnPrincipal = TokenUtility.parseToken("invalid");
 
     assertThat(returnPrincipal.isPresent()).isFalse();
   }
 
   @Test(expected = NullPointerException.class)
   public void givenNoToken_whenParseToken_thenThrowsException() {
-    tokenService.parseToken(null);
+    TokenUtility.parseToken(null);
   }
 
 
 
   @Test(expected = NullPointerException.class)
   public void givenNoPrincipal_whenCreateToken_thenThrowsException() {
-    tokenService.createToken(null);
+    TokenUtility.createToken(null);
   }
 
 }

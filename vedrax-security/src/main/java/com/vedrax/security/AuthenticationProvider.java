@@ -16,10 +16,9 @@ import java.util.Optional;
 @Component
 public class AuthenticationProvider extends AbstractUserDetailsAuthenticationProvider {
 
-    private final TokenService tokenService;
 
-    public AuthenticationProvider(TokenService tokenService) {
-        this.tokenService = tokenService;
+    public AuthenticationProvider() {
+
     }
 
     @Override
@@ -41,7 +40,7 @@ public class AuthenticationProvider extends AbstractUserDetailsAuthenticationPro
                                        UsernamePasswordAuthenticationToken authentication)
             throws AuthenticationException {
         String token = getSecurityToken(authentication);
-        return tokenService.parseToken(token)
+        return TokenUtility.parseToken(token)
                 .orElseThrow(() -> new UsernameNotFoundException("JWT Token [" + token + "] is not valid"));
     }
 

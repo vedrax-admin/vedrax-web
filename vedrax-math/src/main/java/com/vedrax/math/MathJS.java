@@ -1,10 +1,13 @@
 package com.vedrax.math;
 
 import org.apache.commons.lang3.Validate;
+import org.springframework.util.CollectionUtils;
 
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import java.util.*;
+import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import static com.vedrax.math.Util.*;
 
@@ -14,6 +17,8 @@ import static com.vedrax.math.Util.*;
 public class MathJS {
 
   protected static String FILE_NAME = "math.min.js";
+
+  private final static Logger LOG = Logger.getLogger(MathJS.class.getName());
 
   protected ScriptEngine engine;
 
@@ -37,21 +42,18 @@ public class MathJS {
   public String eval(String expr, Map<String, Object> inputs) {
     Validate.notNull(expr, "expression must be provided");
 
-    evaluateScope(inputs);
-    return evaluate("math.evaluate('" + expr + "', scope);");
+    //evaluateScope(inputs);
+    return evaluate("math.evaluate('" + expr + "', " + initScope(inputs) + ");");
   }
 
-  /**
-   * Helper method for adding scope to context
-   *
-   * @param inputs the provided scope
-   */
-  private void evaluateScope(Map<String, Object> inputs) {
-    inputs = inputs == null ? new HashMap<>() : inputs;
+  private String initScope(Map<String, Object> inputs) {
+    if (CollectionUtils.isEmpty(inputs)) {
+      return "{}";
+    }
 
-    evaluate("var scope = {};");
-
-    inputs.forEach((key, value) -> evaluate("scope." + key + "=" + convertObjectToString(value) + ";"));
+    return inputs.keySet().stream()
+      .map(key -> key + ":" + inputs.get(key))
+      .collect(Collectors.joining(", ", "{", "}"));
   }
 
   /**
@@ -62,7 +64,10 @@ public class MathJS {
    */
   private String evaluate(String expression) {
     try {
-      return String.valueOf(engine.eval(expression));
+      LOG.warning("EXPRESSION MATH JS: " + expression);
+      String result = String.valueOf(engine.eval(expression));
+      LOG.warning("RESULT EXPRESSION MATH JS: " + result);
+      return result;
     } catch (Exception e) {
       throw new IllegalArgumentException("Expression [" + expression + "] not valid");
     }

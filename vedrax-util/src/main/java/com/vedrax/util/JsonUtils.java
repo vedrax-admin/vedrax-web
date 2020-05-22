@@ -27,17 +27,26 @@ public class JsonUtils {
     }
 
     Gson gson = new Gson();
-    Type type = new TypeToken<T>() {}.getType();
+    Type type = new TypeToken<T>() {
+    }.getType();
     return gson.fromJson(json, type);
   }
 
-  public static <T> List<T> fromListJson(String json) {
+  public static <T> String listToJson(List<T> values) {
+    Gson gson = new Gson();
+    Type type = new TypeToken<ArrayList<T>>() {
+    }.getType();
+    return gson.toJson(values, type);
+  }
+
+  public static <T> List<T> jsonToList(String json) {
     if (json == null) {
       return Collections.emptyList();
     }
 
     Gson gson = new Gson();
-    Type type = new TypeToken<ArrayList<T>>() {}.getType();
+    Type type = new TypeToken<ArrayList<T>>() {
+    }.getType();
     return gson.fromJson(json, type);
   }
 
