@@ -20,16 +20,16 @@ public class MathJSTest {
 
     MathJS mathJS = new MathJS();
 
-    Map<String, Object> scope = new HashMap<>();
-    scope.put("a", 1);
-    scope.put("b", 3);
+    Map<String, String> scope = new HashMap<>();
+    scope.put("a", "1");
+    scope.put("b", "3");
 
     String result = mathJS.eval("sum(a,b)*2", scope);
 
     assertThat(result).isNotNull();
     assertThat(result).isEqualTo("8.0");
 
-    scope.put("a", Arrays.asList("1", "2", "3"));
+    scope.put("a", "[1, 2, 3]");
 
     result = mathJS.eval("sum(a)", scope);
 

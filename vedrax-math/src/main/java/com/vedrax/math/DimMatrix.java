@@ -41,13 +41,14 @@ public class DimMatrix implements IMatrix {
 
   private void nvpToMap(List<NVP> nvpList) {
     nvpList.forEach(param -> {
-      checkEntry(param.getValue());
-      params.put(param.getKey(), param.getValue());
+      String value = param.getValue();
+      checkEntry(value);
+      params.put(param.getKey(), value);
     });
   }
 
   private void checkEntry(String value) {
-    boolean isNumber = NumberUtils.isParsable(value);
+    boolean isNumber = NumberUtils.isCreatable(value);
 
     if (!isNumber) {
       throw new IllegalArgumentException("The value [" + value + "] is not a valid number");
@@ -79,7 +80,7 @@ public class DimMatrix implements IMatrix {
   }
 
   private void checkIfNumber(String column, String row, String value) {
-    Validate.isTrue(NumberUtils.isParsable(value), "The value " + value + " for the matrix [" + column + "] [" + row + "] is not a number");
+    Validate.isTrue(NumberUtils.isCreatable(value), "The value " + value + " for the matrix [" + column + "] [" + row + "] is not a number");
   }
 
   @Override

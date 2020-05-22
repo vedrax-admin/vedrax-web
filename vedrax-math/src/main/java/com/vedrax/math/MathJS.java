@@ -39,14 +39,14 @@ public class MathJS {
    * @param inputs the scope of the expression
    * @return the result of the expression
    */
-  public String eval(String expr, Map<String, Object> inputs) {
+  public String eval(String expr, Map<String, String> inputs) {
     Validate.notNull(expr, "expression must be provided");
 
     //evaluateScope(inputs);
-    return evaluate("math.evaluate('" + expr + "', " + initScope(inputs) + ");");
+    return evaluate("math.evaluate('round(" + expr + ", 5)', " + initScope(inputs) + ");");
   }
 
-  private String initScope(Map<String, Object> inputs) {
+  private String initScope(Map<String, String> inputs) {
     if (CollectionUtils.isEmpty(inputs)) {
       return "{}";
     }
