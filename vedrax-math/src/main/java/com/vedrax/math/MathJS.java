@@ -6,7 +6,6 @@ import org.springframework.util.CollectionUtils;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import java.util.*;
-import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import static com.vedrax.math.Util.*;
@@ -17,8 +16,6 @@ import static com.vedrax.math.Util.*;
 public class MathJS {
 
   protected static String FILE_NAME = "math.min.js";
-
-  private final static Logger LOG = Logger.getLogger(MathJS.class.getName());
 
   protected ScriptEngine engine;
 
@@ -64,10 +61,7 @@ public class MathJS {
    */
   private String evaluate(String expression) {
     try {
-      LOG.warning("EXPRESSION MATH JS: " + expression);
-      String result = String.valueOf(engine.eval(expression));
-      LOG.warning("RESULT EXPRESSION MATH JS: " + result);
-      return result;
+      return String.valueOf(engine.eval(expression));
     } catch (Exception e) {
       throw new IllegalArgumentException("Expression [" + expression + "] not valid");
     }
