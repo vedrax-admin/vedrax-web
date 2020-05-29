@@ -28,9 +28,7 @@ public class FormGeneratorTest {
   @Test
   public void whenGenerate_thenGenerateDescriptor() {
 
-    FormDto formDto = new FormDto();
-    formDto.setDto(UserCreateDto.class);
-    formDto.setEndpoint("endpoint");
+    FormDto formDto = new FormDto.Builder(UserCreateDto.class,"endpoint").build();
 
     FormDescriptor formDescriptor = formGenerator.generate(formDto, Locale.ENGLISH);
 
@@ -71,10 +69,7 @@ public class FormGeneratorTest {
     userVO.setCreatedBy("ADMIN");
     userVO.setCreatedDate(new Date());
 
-    FormDto formDto = new FormDto();
-    formDto.setDto(UserCreateDto.class);
-    formDto.setSource(userVO);
-    formDto.setEndpoint("endpoint");
+    FormDto formDto = new FormDto.Builder(UserCreateDto.class,"endpoint").withSource(userVO).build();
 
     FormDescriptor formDescriptor = formGenerator.generate(formDto, Locale.ENGLISH);
 
@@ -103,11 +98,9 @@ public class FormGeneratorTest {
 
     String url = String.format("%s/%s", "/test", assessmentEquipment.getId());
 
-    FormDto formDto = new FormDto();
-    formDto.setMethod("PUT");
-    formDto.setEndpoint(url);
-    formDto.setSource(assessmentEquipment);
-    formDto.setDto(AssessmentEquipmentDto.class);
+    FormDto formDto = new FormDto.Builder(AssessmentEquipmentDto.class,url)
+            .withMethod("PUT")
+            .withSource(assessmentEquipment).build();
 
     FormDescriptor formDescriptor = formGenerator.generate(formDto, null);
 
