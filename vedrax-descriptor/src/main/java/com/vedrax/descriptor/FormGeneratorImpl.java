@@ -42,6 +42,7 @@ public class FormGeneratorImpl implements FormGenerator {
     formDescriptor.setMethod(formDto.getMethod() == null ? "POST" : formDto.getMethod());
     formDescriptor.setEndpoint(formDto.getEndpoint());
     formDescriptor.setUpdateTable(formDto.isUpdateTable());
+    formDescriptor.setSuccessUrl(formDto.getSuccessURL());
     formDescriptor.setSuccessMessage(formDto.getSuccessMessage());
 
 
