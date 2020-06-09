@@ -118,6 +118,8 @@ public class DimMatrix implements IMatrix {
 
   @Override
   public String getParam(String key) {
+    Validate.notNull(key, "key must be provided");
+
     String value = params.get(key);
 
     Validate.notNull(value, "The param with key [" + key + "] does not exist.");
