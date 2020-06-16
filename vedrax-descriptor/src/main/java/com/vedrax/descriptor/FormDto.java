@@ -11,6 +11,7 @@ public class FormDto {
     private String method;
     private Object source;
     private boolean updateTable;
+    private String title;
     private String successMessage;
     private String successURL;
 
@@ -27,6 +28,11 @@ public class FormDto {
 
     public Builder withSource(Object source){
       this.source = source;
+      return this;
+    }
+
+    public Builder withTitle(String title){
+      this.title = title;
       return this;
     }
 
@@ -52,6 +58,7 @@ public class FormDto {
       formDto.method = this.method;
       formDto.source = this.source;
       formDto.updateTable = this.updateTable;
+      formDto.title = this.title;
       formDto.successMessage = this.successMessage;
       formDto.successURL = this.successURL;
       return formDto;
@@ -64,6 +71,7 @@ public class FormDto {
   private String method;
   private Object source;
   private boolean updateTable;
+  private String title;
   private String successMessage;
   private String successURL;
 
