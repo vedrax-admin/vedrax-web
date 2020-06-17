@@ -357,7 +357,7 @@ public class ControlManager {
    */
   private SearchDescriptor getSearchDescriptor(Class<?> form) {
     SearchDescriptor searchDescriptor = new SearchDescriptor();
-    searchDescriptor.setSearchControls(getControls(form, null));
+    searchDescriptor.setControls(getControls(form, null));
     EndpointManager endpointManager = new EndpointManager(form);
     endpointManager.init(searchDescriptor);
     return searchDescriptor;

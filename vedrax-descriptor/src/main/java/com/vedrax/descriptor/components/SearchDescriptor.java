@@ -12,7 +12,7 @@ import java.util.List;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class SearchDescriptor {
   @JsonInclude(JsonInclude.Include.NON_EMPTY)
-  private List<FormControlDescriptor> searchControls = new ArrayList<>();
+  private List<FormControlDescriptor> controls = new ArrayList<>();
   @JsonInclude(JsonInclude.Include.NON_EMPTY)
   private List<EndpointDescriptor> lovs = new ArrayList<>();
 }
