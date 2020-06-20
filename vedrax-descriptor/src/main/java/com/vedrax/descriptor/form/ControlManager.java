@@ -26,390 +26,412 @@ import static com.vedrax.descriptor.typeof.TypeOf.whenTypeOf;
 
 public class ControlManager {
 
-  private final MessageSource messageSource;
-  private final Locale locale;
+    private final MessageSource messageSource;
+    private final Locale locale;
 
-  public ControlManager(MessageSource messageSource, Locale locale) {
-    this.messageSource = messageSource;
-    this.locale = locale;
-  }
+    public ControlManager(MessageSource messageSource, Locale locale) {
+        this.messageSource = messageSource;
+        this.locale = locale;
+    }
 
-  public List<String> init(FormDto formDto, FormDescriptor formDescriptor) {
-    Validate.notNull(formDto, "form dto must be provided");
-    Validate.notNull(formDescriptor, "form descriptor must be provided");
+    public List<String> init(FormDto formDto, FormDescriptor formDescriptor) {
+        Validate.notNull(formDto, "form dto must be provided");
+        Validate.notNull(formDescriptor, "form descriptor must be provided");
 
-    List<FormControlDescriptor> controls = getControls(formDto.getDto(), formDto.getSource());
-    formDescriptor.setControls(controls);
+        List<FormControlDescriptor> controls = getControls(formDto.getDto(), formDto.getSource());
+        formDescriptor.setControls(controls);
 
-    return controls.stream().map(FormControlDescriptor::getControlName).collect(Collectors.toList());
-  }
+        return controls.stream().map(FormControlDescriptor::getControlName).collect(Collectors.toList());
+    }
 
-  /**
-   * Create the list of controls descriptors using reflection
-   *
-   * @param sourceClass the source class
-   * @param source      the source
-   * @return list of controls descriptors
-   */
-  private List<FormControlDescriptor> getControls(Class<?> sourceClass, Object source) {
-    Validate.notNull(sourceClass, "source class must be provided");
+    /**
+     * Create the list of controls descriptors using reflection
+     *
+     * @param sourceClass the source class
+     * @param source      the source
+     * @return list of controls descriptors
+     */
+    private List<FormControlDescriptor> getControls(Class<?> sourceClass, Object source) {
+        Validate.notNull(sourceClass, "source class must be provided");
 
-    String packageName = sourceClass.getPackage().getName();
+        String packageName = sourceClass.getPackage().getName();
 
-    List<FormControlDescriptor> controls = new ArrayList<>();
+        List<FormControlDescriptor> controls = new ArrayList<>();
 
-    Field[] fields = FieldUtils.getAllFields(sourceClass);
+        Field[] fields = FieldUtils.getAllFields(sourceClass);
 
-    boolean hasSource = source != null;
+        boolean hasSource = source != null;
 
-    for (Field field : fields) {
+        for (Field field : fields) {
 
-      FormControlDescriptor formControlDescriptor = generateFormControlWithAttribute(field, hasSource, packageName);
-      if (formControlDescriptor != null) {
+            FormControlDescriptor formControlDescriptor = generateFormControlWithAttribute(field, hasSource, packageName);
+            if (formControlDescriptor != null) {
 
-        initControlWithType(field, formControlDescriptor);
-        initControlWithAnnotations(field, formControlDescriptor, packageName);
-        setControlValue(source, formControlDescriptor);
-        controls.add(formControlDescriptor);
-      }
+                initControlWithType(field, formControlDescriptor);
+                initControlWithAnnotations(field, formControlDescriptor, packageName);
+                setControlValue(source, formControlDescriptor);
+                controls.add(formControlDescriptor);
+            }
+
+        }
+
+        return controls;
+    }
+
+    /**
+     * Method for generating a form control
+     *
+     * @param field the field of the dto class
+     * @return form control descriptor
+     */
+    private FormControlDescriptor generateFormControlWithAttribute(Field field, boolean hasSource, String packageName) {
+
+        if (checkIfAttributeShouldBeExcluded(field, hasSource)) {
+            return null;
+        }
+
+        return initFormControl(field, packageName);
+    }
+
+    /**
+     * Method for checking if an attribute should be included
+     *
+     * @param field the field for the dto class
+     * @return true when add otherwise false
+     */
+    private boolean checkIfAttributeShouldBeExcluded(Field field, boolean hasSource) {
+        return hasSource && field.isAnnotationPresent(Null.class);
+    }
+
+
+    /**
+     * Generate form control with reflection
+     *
+     * @param field the field of the dto class
+     * @return form control descriptor
+     */
+    private FormControlDescriptor initFormControl(Field field, String packageName) {
+        FormControlDescriptor formControlDescriptor = new FormControlDescriptor();
+
+        String controlKey = String.format("%s.%s", packageName, field.getName());
+
+        formControlDescriptor.setControlName(field.getName());
+        formControlDescriptor.setControlLabel(MessageUtil.getMessageFromKey(messageSource, controlKey + ".label", null, locale));
+        formControlDescriptor.setControlHint(MessageUtil.getMessageFromKey(messageSource, controlKey + ".hint", null, locale));
+        return formControlDescriptor;
+    }
+
+    /**
+     * Init control type
+     *
+     * @param field                 the field of the dto class
+     * @param formControlDescriptor the form control descriptor
+     */
+    public void initControlWithType(Field field, FormControlDescriptor formControlDescriptor) {
+
+        Class<?> type = field.getType();
+
+        if (Date.class.isAssignableFrom(type)) {
+            formControlDescriptor.setControlType(String.valueOf(ControlType.datepicker));
+        } else if (Integer.class.isAssignableFrom(type)) {
+            setAsNumber(formControlDescriptor);
+        } else if (Double.class.isAssignableFrom(type)) {
+            setAsNumber(formControlDescriptor);
+        } else if (BigDecimal.class.isAssignableFrom(type)) {
+            setAsNumber(formControlDescriptor);
+        } else if (Boolean.class.isAssignableFrom(type)) {
+            formControlDescriptor.setControlType(String.valueOf(ControlType.checkbox));
+        } else {
+            formControlDescriptor.setControlType(String.valueOf(ControlType.input));
+        }
 
     }
 
-    return controls;
-  }
+    /**
+     * Create number property
+     */
+    private void setAsNumber(FormControlDescriptor formControlDescriptor) {
+        PropertyDescriptor propertyDescriptor = new PropertyDescriptor();
+        propertyDescriptor.setPropertyName("type");
+        propertyDescriptor.setPropertyValue("number");
 
-  /**
-   * Method for generating a form control
-   *
-   * @param field the field of the dto class
-   * @return form control descriptor
-   */
-  private FormControlDescriptor generateFormControlWithAttribute(Field field, boolean hasSource, String packageName) {
-
-    if (checkIfAttributeShouldBeExcluded(field, hasSource)) {
-      return null;
+        formControlDescriptor.setControlType(String.valueOf(ControlType.input));
+        formControlDescriptor.addProperty(propertyDescriptor);
     }
 
-    return initFormControl(field, packageName);
-  }
+    /**
+     * Method for setting value of the specified control
+     *
+     * @param entity  the data source
+     * @param control the form control descriptor
+     */
+    private void setControlValue(Object entity, FormControlDescriptor control) {
 
-  /**
-   * Method for checking if an attribute should be included
-   *
-   * @param field the field for the dto class
-   * @return true when add otherwise false
-   */
-  private boolean checkIfAttributeShouldBeExcluded(Field field, boolean hasSource) {
-    return hasSource && field.isAnnotationPresent(Null.class);
-  }
+        //in case entity is not found
+        if (entity == null) {
+            return;
+        }
 
+        String controlName = control.getControlName();
 
-  /**
-   * Generate form control with reflection
-   *
-   * @param field the field of the dto class
-   * @return form control descriptor
-   */
-  private FormControlDescriptor initFormControl(Field field, String packageName) {
-    FormControlDescriptor formControlDescriptor = new FormControlDescriptor();
+        Optional<Object> fieldOpt = ReflectUtil.getField(entity, controlName);
 
-    String controlKey = String.format("%s.%s", packageName, field.getName());
+        if (fieldOpt.isPresent()) {
 
-    formControlDescriptor.setControlName(field.getName());
-    formControlDescriptor.setControlLabel(MessageUtil.getMessageFromKey(messageSource, controlKey + ".label", null, locale));
-    formControlDescriptor.setControlHint(MessageUtil.getMessageFromKey(messageSource, controlKey + ".hint", null, locale));
-    return formControlDescriptor;
-  }
+            Object value = fieldOpt.get();
 
-  /**
-   * Init control type
-   *
-   * @param field                 the field of the dto class
-   * @param formControlDescriptor the form control descriptor
-   */
-  public void initControlWithType(Field field, FormControlDescriptor formControlDescriptor) {
+            if (control.getControlType().equals(String.valueOf(ControlType.autocomplete))) {
+                NVP nvp = new NVP();
+                nvp.setKey(String.valueOf(value));
+                Optional<Object> displayOpt = ReflectUtil.getField(entity, control.getControlDisplayKey());
+                nvp.setValue(String.valueOf(displayOpt.orElse(value)));
+                control.setControlValue(nvp);
+            } else {
+                fieldOpt.ifPresent(control::setControlValue);
+            }
 
-    Class<?> type = field.getType();
+        }
 
-    if (Date.class.isAssignableFrom(type)) {
-      formControlDescriptor.setControlType(String.valueOf(ControlType.datepicker));
-    } else if (Integer.class.isAssignableFrom(type)) {
-      setAsNumber(formControlDescriptor);
-    } else if (Double.class.isAssignableFrom(type)) {
-      setAsNumber(formControlDescriptor);
-    } else if (BigDecimal.class.isAssignableFrom(type)) {
-      setAsNumber(formControlDescriptor);
-    } else if (Boolean.class.isAssignableFrom(type)) {
-      formControlDescriptor.setControlType(String.valueOf(ControlType.checkbox));
-    } else {
-      formControlDescriptor.setControlType(String.valueOf(ControlType.input));
-    }
-
-  }
-
-  /**
-   * Create number property
-   */
-  private void setAsNumber(FormControlDescriptor formControlDescriptor) {
-    PropertyDescriptor propertyDescriptor = new PropertyDescriptor();
-    propertyDescriptor.setPropertyName("type");
-    propertyDescriptor.setPropertyValue("number");
-
-    formControlDescriptor.setControlType(String.valueOf(ControlType.input));
-    formControlDescriptor.addProperty(propertyDescriptor);
-  }
-
-  /**
-   * Method for setting value of the specified control
-   *
-   * @param entity  the data source
-   * @param control the form control descriptor
-   */
-  private void setControlValue(Object entity, FormControlDescriptor control) {
-
-    //in case entity is not found
-    if (entity == null) {
-      return;
-    }
-
-    String controlName = control.getControlName();
-
-    Optional<Object> fieldOpt = ReflectUtil.getField(entity, controlName);
-
-    fieldOpt.ifPresent(control::setControlValue);
-
-  }
-
-  /**
-   * Init control with annotations
-   *
-   * @param field                 the field of the dto class
-   * @param formControlDescriptor the form control descriptor
-   */
-  public void initControlWithAnnotations(Field field,
-                                         FormControlDescriptor formControlDescriptor, String packageName) {
-
-    for (Annotation annotation : field.getDeclaredAnnotations()) {
-
-      whenTypeOf(annotation)
-        .is(com.vedrax.descriptor.annotations.Properties.class).then(properties -> fromListOfProperties(properties, formControlDescriptor))
-        .is(Component.class).then(component -> fromComponent(component, formControlDescriptor))
-        .is(Children.class).then(children -> fromChildren(children, formControlDescriptor))
-        .is(Lov.class).then(lov -> fromEnums(lov, formControlDescriptor))
-        .is(NotNull.class).then(validation -> fromValidation(ValidationType.required, true, formControlDescriptor, packageName))
-        .is(Size.class).then(validation -> fromSizeValidation(validation, formControlDescriptor, packageName))
-        .is(Email.class).then(validation -> fromValidation(ValidationType.email, true, formControlDescriptor, packageName))
-        .is(Min.class).then(validation -> fromValidation(ValidationType.min, validation.value(), formControlDescriptor, packageName))
-        .is(Max.class).then(validation -> fromValidation(ValidationType.max, validation.value(), formControlDescriptor, packageName))
-        .is(NotEmpty.class).then(validation -> fromValidation(ValidationType.required, true, formControlDescriptor, packageName))
-        .is(NotBlank.class).then(validation -> fromValidation(ValidationType.required, true, formControlDescriptor, packageName))
-        .is(Search.class).then(search -> fromSearch(search, formControlDescriptor))
-        .is(Pattern.class).then(validation -> fromValidation(ValidationType.pattern, validation.regexp(), formControlDescriptor, packageName));
-    }
-
-  }
-
-  /**
-   * Method for generating list of options with the Lov annotation
-   *
-   * @param lov                   the list of values annotation
-   * @param formControlDescriptor the form control descriptor
-   */
-  private void fromEnums(Lov lov, FormControlDescriptor formControlDescriptor) {
-    generateLOVWithEnums(lov.enumType(), formControlDescriptor);
-  }
-
-  /**
-   * Method for generating LOV with the provided enums
-   *
-   * @param enumType              the type of enum
-   * @param formControlDescriptor the form control descriptor
-   */
-  private void generateLOVWithEnums(Class<? extends EnumWithValue> enumType,
-                                    FormControlDescriptor formControlDescriptor) {
-
-    List<NVP> nvpList = new ArrayList<>();
-
-    String className = enumType.getName();
-
-    EnumWithValue[] values = enumType.getEnumConstants();
-
-    for (EnumWithValue enumWithValue : values) {
-      String key = "" + enumWithValue;
-
-      NVP nvp = new NVP();
-      nvp.setKey(key);
-      nvp.setValue(MessageUtil.getMessageFromKey(messageSource, className + "." + key, null, locale));
-      nvpList.add(nvp);
-    }
-
-    formControlDescriptor.setControlOptions(nvpList);
-    formControlDescriptor.setControlType("select");
-
-  }
-
-  /**
-   * Method for creating children components
-   *
-   * @param children              the children annotation
-   * @param formControlDescriptor the form control descriptor
-   */
-  private void fromChildren(Children children, FormControlDescriptor formControlDescriptor) {
-    List<FormControlDescriptor> controls = getControls(children.type(), null);
-    formControlDescriptor.setControlChildren(controls);
-    formControlDescriptor.setControlType(String.valueOf(ControlType.arrayOfControls));
-  }
-
-  /**
-   * Method for overriding the control type
-   *
-   * @param component             the component annotation
-   * @param formControlDescriptor the form control descriptor
-   */
-  private void fromComponent(Component component, FormControlDescriptor formControlDescriptor) {
-    //override the component type by default
-    formControlDescriptor.setControlType(component.type());
-  }
-
-  /**
-   * Method for including size validation
-   *
-   * @param sizeValidation        the size annotation
-   * @param formControlDescriptor the form control descriptor
-   */
-  private void fromSizeValidation(Size sizeValidation, FormControlDescriptor formControlDescriptor, String packageName) {
-    if (sizeValidation.max() > 0) {
-      fromValidation(ValidationType.maxlength, sizeValidation.max(), formControlDescriptor, packageName);
-    }
-
-    if (sizeValidation.min() > 0) {
-      fromValidation(ValidationType.minlength, sizeValidation.min(), formControlDescriptor, packageName);
-    }
-  }
-
-  /**
-   * Method for adding validation
-   *
-   * @param validationType        the validation type enum
-   * @param value                 the validation value
-   * @param formControlDescriptor the form control descriptor
-   */
-  private void fromValidation(ValidationType validationType,
-                              Object value,
-                              FormControlDescriptor formControlDescriptor,
-                              String packageName) {
-
-    String messageKey = String.format("%s.%s.%s", packageName, formControlDescriptor.getControlName(), validationType);
-    ValidationDescriptor validationDescriptor = new ValidationDescriptor();
-    validationDescriptor.setValidationName(validationType.getName());
-    validationDescriptor.setValidationValue(value);
-    if (value != null) {
-      validationDescriptor.setValidationMessage(MessageUtil.getMessageFromKey(messageSource, messageKey, new Object[]{value}, locale));
-    } else {
-      validationDescriptor.setValidationMessage(MessageUtil.getMessageFromKey(messageSource, messageKey, null, locale));
-    }
-    formControlDescriptor.addValidation(validationDescriptor);
-  }
-
-  /**
-   * Method for adding properties value to form control descriptor
-   *
-   * @param listOfProperties      the properties annotation
-   * @param formControlDescriptor the form control descriptor
-   */
-  private void fromListOfProperties(Properties listOfProperties, FormControlDescriptor formControlDescriptor) {
-    for (Property property : listOfProperties.properties()) {
-      PropertyDescriptor propertyDescriptor = new PropertyDescriptor();
-      propertyDescriptor.setPropertyName(property.propertyName());
-      propertyDescriptor.setPropertyValue(property.propertyValue());
-      formControlDescriptor.addProperty(propertyDescriptor);
-    }
-  }
-
-  /**
-   * Method for creating search control
-   *
-   * @param search                the search annotation
-   * @param formControlDescriptor the form control descriptor
-   */
-  private void fromSearch(Search search, FormControlDescriptor formControlDescriptor) {
-
-    String packageName = search.vo().getPackage().getName();
-
-    TableDescriptor tableDescriptor = new TableDescriptor();
-    tableDescriptor.setTitle(MessageUtil.getMessageFromKey(messageSource, packageName + ".title", null, locale));
-    tableDescriptor.setPaginated(true);
-    tableDescriptor.setLoadOnInit(false);
-    tableDescriptor.setPath(search.endpoint());
-    tableDescriptor.setColumns(getColumns(search.vo()));
-    tableDescriptor.setSearch(getSearchDescriptor(search.form()));
-
-    formControlDescriptor.setControlType(String.valueOf(ControlType.search));
-    formControlDescriptor.setControlSearch(tableDescriptor);
-
-  }
-
-  /**
-   * Get search descriptor
-   *
-   * @param form the search form
-   * @return the search descriptor
-   */
-  private SearchDescriptor getSearchDescriptor(Class<?> form) {
-    SearchDescriptor searchDescriptor = new SearchDescriptor();
-    searchDescriptor.setControls(getControls(form, null));
-    EndpointManager endpointManager = new EndpointManager(form);
-    endpointManager.init(searchDescriptor);
-    return searchDescriptor;
-  }
-
-  /**
-   * Method for getting the search columns
-   *
-   * @param vo the applied VO
-   * @return list of columns info
-   */
-  private List<ColumnDescriptor> getColumns(Class<?> vo) {
-
-    String packageName = vo.getPackage().getName();
-
-    List<ColumnDescriptor> columns = new ArrayList<>();
-
-    Field[] fields = FieldUtils.getAllFields(vo);
-
-    for (Field field : fields) {
-
-      String labelKey = String.format("%s.%s.label", packageName, field.getName());
-
-      ColumnDescriptor columnDescriptor = new ColumnDescriptor();
-      columnDescriptor.setId(field.getName());
-      columnDescriptor.setLabel(MessageUtil.getMessageFromKey(messageSource, labelKey, null, locale));
-      columns.add(columnDescriptor);
 
     }
 
-    //append action column
-    columns.add(getActionColumn());
+    /**
+     * Init control with annotations
+     *
+     * @param field                 the field of the dto class
+     * @param formControlDescriptor the form control descriptor
+     */
+    public void initControlWithAnnotations(Field field,
+                                           FormControlDescriptor formControlDescriptor, String packageName) {
 
-    return columns;
+        for (Annotation annotation : field.getDeclaredAnnotations()) {
 
-  }
+            whenTypeOf(annotation)
+                    .is(com.vedrax.descriptor.annotations.Properties.class).then(properties -> fromListOfProperties(properties, formControlDescriptor))
+                    .is(Component.class).then(component -> fromComponent(component, formControlDescriptor))
+                    .is(Children.class).then(children -> fromChildren(children, formControlDescriptor))
+                    .is(Lov.class).then(lov -> fromEnums(lov, formControlDescriptor))
+                    .is(NotNull.class).then(validation -> fromValidation(ValidationType.required, true, formControlDescriptor, packageName))
+                    .is(Size.class).then(validation -> fromSizeValidation(validation, formControlDescriptor, packageName))
+                    .is(Email.class).then(validation -> fromValidation(ValidationType.email, true, formControlDescriptor, packageName))
+                    .is(Min.class).then(validation -> fromValidation(ValidationType.min, validation.value(), formControlDescriptor, packageName))
+                    .is(Max.class).then(validation -> fromValidation(ValidationType.max, validation.value(), formControlDescriptor, packageName))
+                    .is(NotEmpty.class).then(validation -> fromValidation(ValidationType.required, true, formControlDescriptor, packageName))
+                    .is(NotBlank.class).then(validation -> fromValidation(ValidationType.required, true, formControlDescriptor, packageName))
+                    .is(Search.class).then(search -> fromSearch(search, formControlDescriptor))
+                    .is(Autocomplete.class).then(autocomplete -> fromAutocomplete(autocomplete, formControlDescriptor))
+                    .is(Pattern.class).then(validation -> fromValidation(ValidationType.pattern, validation.regexp(), formControlDescriptor, packageName));
+        }
 
-  private ColumnDescriptor getActionColumn() {
-    ColumnDescriptor columnDescriptor = new ColumnDescriptor();
-    columnDescriptor.setId("actionSearch");
-    columnDescriptor.setLabel(MessageUtil.getMessageFromKey(messageSource, "actions.label", null, locale));
-    columnDescriptor.setActions(getActions());
-    return columnDescriptor;
-  }
+    }
 
-  private List<ActionDescriptor> getActions() {
-    List<ActionDescriptor> actions = new ArrayList<>();
-    ActionDescriptor actionDescriptor = new ActionDescriptor();
-    actionDescriptor.setLabel(MessageUtil.getMessageFromKey(messageSource, "selection.label", null, locale));
-    actionDescriptor.setAction(ActionType.select);
-    actions.add(actionDescriptor);
-    return actions;
-  }
+    /**
+     * Method for generating list of options with the Lov annotation
+     *
+     * @param lov                   the list of values annotation
+     * @param formControlDescriptor the form control descriptor
+     */
+    private void fromEnums(Lov lov, FormControlDescriptor formControlDescriptor) {
+        generateLOVWithEnums(lov.enumType(), formControlDescriptor);
+    }
+
+    /**
+     * Method for generating LOV with the provided enums
+     *
+     * @param enumType              the type of enum
+     * @param formControlDescriptor the form control descriptor
+     */
+    private void generateLOVWithEnums(Class<? extends EnumWithValue> enumType,
+                                      FormControlDescriptor formControlDescriptor) {
+
+        List<NVP> nvpList = new ArrayList<>();
+
+        String className = enumType.getName();
+
+        EnumWithValue[] values = enumType.getEnumConstants();
+
+        for (EnumWithValue enumWithValue : values) {
+            String key = "" + enumWithValue;
+
+            NVP nvp = new NVP();
+            nvp.setKey(key);
+            nvp.setValue(MessageUtil.getMessageFromKey(messageSource, className + "." + key, null, locale));
+            nvpList.add(nvp);
+        }
+
+        formControlDescriptor.setControlOptions(nvpList);
+        formControlDescriptor.setControlType("select");
+
+    }
+
+    private void fromAutocomplete(Autocomplete autocomplete, FormControlDescriptor formControlDescriptor) {
+        formControlDescriptor.setControlType(String.valueOf(ControlType.autocomplete));
+        formControlDescriptor.setControlSearchUrl(autocomplete.endpoint());
+        formControlDescriptor.setControlDisplayKey(autocomplete.displayAttribute());
+    }
+
+    /**
+     * Method for creating children components
+     *
+     * @param children              the children annotation
+     * @param formControlDescriptor the form control descriptor
+     */
+    private void fromChildren(Children children, FormControlDescriptor formControlDescriptor) {
+        List<FormControlDescriptor> controls = getControls(children.type(), null);
+        formControlDescriptor.setControlChildren(controls);
+        formControlDescriptor.setControlType(String.valueOf(ControlType.arrayOfControls));
+    }
+
+    /**
+     * Method for overriding the control type
+     *
+     * @param component             the component annotation
+     * @param formControlDescriptor the form control descriptor
+     */
+    private void fromComponent(Component component, FormControlDescriptor formControlDescriptor) {
+        //override the component type by default
+        formControlDescriptor.setControlType(component.type());
+    }
+
+    /**
+     * Method for including size validation
+     *
+     * @param sizeValidation        the size annotation
+     * @param formControlDescriptor the form control descriptor
+     */
+    private void fromSizeValidation(Size sizeValidation, FormControlDescriptor formControlDescriptor, String packageName) {
+        if (sizeValidation.max() > 0) {
+            fromValidation(ValidationType.maxlength, sizeValidation.max(), formControlDescriptor, packageName);
+        }
+
+        if (sizeValidation.min() > 0) {
+            fromValidation(ValidationType.minlength, sizeValidation.min(), formControlDescriptor, packageName);
+        }
+    }
+
+    /**
+     * Method for adding validation
+     *
+     * @param validationType        the validation type enum
+     * @param value                 the validation value
+     * @param formControlDescriptor the form control descriptor
+     */
+    private void fromValidation(ValidationType validationType,
+                                Object value,
+                                FormControlDescriptor formControlDescriptor,
+                                String packageName) {
+
+        String messageKey = String.format("%s.%s.%s", packageName, formControlDescriptor.getControlName(), validationType);
+        ValidationDescriptor validationDescriptor = new ValidationDescriptor();
+        validationDescriptor.setValidationName(validationType.getName());
+        validationDescriptor.setValidationValue(value);
+        if (value != null) {
+            validationDescriptor.setValidationMessage(MessageUtil.getMessageFromKey(messageSource, messageKey, new Object[]{value}, locale));
+        } else {
+            validationDescriptor.setValidationMessage(MessageUtil.getMessageFromKey(messageSource, messageKey, null, locale));
+        }
+        formControlDescriptor.addValidation(validationDescriptor);
+    }
+
+    /**
+     * Method for adding properties value to form control descriptor
+     *
+     * @param listOfProperties      the properties annotation
+     * @param formControlDescriptor the form control descriptor
+     */
+    private void fromListOfProperties(Properties listOfProperties, FormControlDescriptor formControlDescriptor) {
+        for (Property property : listOfProperties.properties()) {
+            PropertyDescriptor propertyDescriptor = new PropertyDescriptor();
+            propertyDescriptor.setPropertyName(property.propertyName());
+            propertyDescriptor.setPropertyValue(property.propertyValue());
+            formControlDescriptor.addProperty(propertyDescriptor);
+        }
+    }
+
+    /**
+     * Method for creating search control
+     *
+     * @param search                the search annotation
+     * @param formControlDescriptor the form control descriptor
+     */
+    private void fromSearch(Search search, FormControlDescriptor formControlDescriptor) {
+
+        String packageName = search.vo().getPackage().getName();
+
+        TableDescriptor tableDescriptor = new TableDescriptor();
+        tableDescriptor.setTitle(MessageUtil.getMessageFromKey(messageSource, packageName + ".title", null, locale));
+        tableDescriptor.setPaginated(true);
+        tableDescriptor.setLoadOnInit(false);
+        tableDescriptor.setPath(search.endpoint());
+        tableDescriptor.setColumns(getColumns(search.vo()));
+        tableDescriptor.setSearch(getSearchDescriptor(search.form()));
+
+        formControlDescriptor.setControlType(String.valueOf(ControlType.search));
+        formControlDescriptor.setControlSearch(tableDescriptor);
+
+    }
+
+    /**
+     * Get search descriptor
+     *
+     * @param form the search form
+     * @return the search descriptor
+     */
+    private SearchDescriptor getSearchDescriptor(Class<?> form) {
+        SearchDescriptor searchDescriptor = new SearchDescriptor();
+        searchDescriptor.setControls(getControls(form, null));
+        EndpointManager endpointManager = new EndpointManager(form);
+        endpointManager.init(searchDescriptor);
+        return searchDescriptor;
+    }
+
+    /**
+     * Method for getting the search columns
+     *
+     * @param vo the applied VO
+     * @return list of columns info
+     */
+    private List<ColumnDescriptor> getColumns(Class<?> vo) {
+
+        String packageName = vo.getPackage().getName();
+
+        List<ColumnDescriptor> columns = new ArrayList<>();
+
+        Field[] fields = FieldUtils.getAllFields(vo);
+
+        for (Field field : fields) {
+
+            String labelKey = String.format("%s.%s.label", packageName, field.getName());
+
+            ColumnDescriptor columnDescriptor = new ColumnDescriptor();
+            columnDescriptor.setId(field.getName());
+            columnDescriptor.setLabel(MessageUtil.getMessageFromKey(messageSource, labelKey, null, locale));
+            columns.add(columnDescriptor);
+
+        }
+
+        //append action column
+        columns.add(getActionColumn());
+
+        return columns;
+
+    }
+
+    private ColumnDescriptor getActionColumn() {
+        ColumnDescriptor columnDescriptor = new ColumnDescriptor();
+        columnDescriptor.setId("actionSearch");
+        columnDescriptor.setLabel(MessageUtil.getMessageFromKey(messageSource, "actions.label", null, locale));
+        columnDescriptor.setActions(getActions());
+        return columnDescriptor;
+    }
+
+    private List<ActionDescriptor> getActions() {
+        List<ActionDescriptor> actions = new ArrayList<>();
+        ActionDescriptor actionDescriptor = new ActionDescriptor();
+        actionDescriptor.setLabel(MessageUtil.getMessageFromKey(messageSource, "selection.label", null, locale));
+        actionDescriptor.setAction(ActionType.select);
+        actions.add(actionDescriptor);
+        return actions;
+    }
 
 }

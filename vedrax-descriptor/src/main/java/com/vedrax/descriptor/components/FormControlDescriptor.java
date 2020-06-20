@@ -29,6 +29,8 @@ public class FormControlDescriptor {
   @JsonInclude(JsonInclude.Include.NON_EMPTY)
   private List<FormControlDescriptor> controlChildren = new ArrayList<>();
   private TableDescriptor controlSearch;
+  private String controlSearchUrl;
+  private String controlDisplayKey;
 
   public boolean addProperty(PropertyDescriptor propertyDescriptor) {
     return controlProperties.add(propertyDescriptor);

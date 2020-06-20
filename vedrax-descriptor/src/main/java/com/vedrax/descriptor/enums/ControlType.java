@@ -14,5 +14,6 @@ public enum ControlType {
   arrayOfControls,
   search,
   matrix,
-  nvp
+  nvp,
+  autocomplete
 }
