@@ -10,4 +10,5 @@ import java.lang.annotation.Target;
 public @interface Autocomplete {
     String endpoint();
     String displayAttribute();
+    String[] params() default {};
 }

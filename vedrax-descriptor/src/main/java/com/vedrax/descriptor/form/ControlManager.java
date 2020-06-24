@@ -4,7 +4,6 @@ import com.vedrax.descriptor.FormDto;
 import com.vedrax.descriptor.annotations.*;
 import com.vedrax.descriptor.annotations.Properties;
 import com.vedrax.descriptor.components.*;
-import com.vedrax.descriptor.enums.ActionType;
 import com.vedrax.descriptor.enums.ControlType;
 import com.vedrax.descriptor.enums.ValidationType;
 import com.vedrax.descriptor.lov.EnumWithValue;
@@ -181,9 +180,14 @@ public class ControlManager {
             Object value = fieldOpt.get();
 
             if (control.getControlType().equals(String.valueOf(ControlType.autocomplete))) {
+
+                AutocompleteDescriptor autocompleteDescriptor = control.getControlSearch();
+
+                Validate.notNull(autocompleteDescriptor, "AutocompleteDescriptor must be provided via annotation");
+
                 NVP nvp = new NVP();
                 nvp.setKey(String.valueOf(value));
-                Optional<Object> displayOpt = ReflectUtil.getField(entity, control.getControlDisplayKey());
+                Optional<Object> displayOpt = ReflectUtil.getField(entity, autocompleteDescriptor.getDisplayKey());
                 nvp.setValue(String.valueOf(displayOpt.orElse(value)));
                 control.setControlValue(nvp);
             } else {
@@ -218,7 +222,6 @@ public class ControlManager {
                     .is(Max.class).then(validation -> fromValidation(ValidationType.max, validation.value(), formControlDescriptor, packageName))
                     .is(NotEmpty.class).then(validation -> fromValidation(ValidationType.required, true, formControlDescriptor, packageName))
                     .is(NotBlank.class).then(validation -> fromValidation(ValidationType.required, true, formControlDescriptor, packageName))
-                    .is(Search.class).then(search -> fromSearch(search, formControlDescriptor))
                     .is(Autocomplete.class).then(autocomplete -> fromAutocomplete(autocomplete, formControlDescriptor))
                     .is(Pattern.class).then(validation -> fromValidation(ValidationType.pattern, validation.regexp(), formControlDescriptor, packageName));
         }
@@ -266,8 +269,22 @@ public class ControlManager {
 
     private void fromAutocomplete(Autocomplete autocomplete, FormControlDescriptor formControlDescriptor) {
         formControlDescriptor.setControlType(String.valueOf(ControlType.autocomplete));
-        formControlDescriptor.setControlSearchUrl(autocomplete.endpoint());
-        formControlDescriptor.setControlDisplayKey(autocomplete.displayAttribute());
+
+        AutocompleteDescriptor autocompleteDescriptor = new AutocompleteDescriptor();
+        autocompleteDescriptor.setEndpoint(autocomplete.endpoint());
+        autocompleteDescriptor.setDisplayKey(autocomplete.displayAttribute());
+        List<NVP> params = new ArrayList<>();
+
+        for (String param : autocomplete.params()) {
+            String[] splitString = param.split(":");
+            NVP nameValuePair = new NVP();
+            nameValuePair.setKey(splitString[0]);
+            nameValuePair.setValue(splitString[1]);
+            params.add(nameValuePair);
+        }
+
+        autocompleteDescriptor.setDefaultParams(params);
+        formControlDescriptor.setControlSearch(autocompleteDescriptor);
     }
 
     /**
@@ -346,92 +363,6 @@ public class ControlManager {
             propertyDescriptor.setPropertyValue(property.propertyValue());
             formControlDescriptor.addProperty(propertyDescriptor);
         }
-    }
-
-    /**
-     * Method for creating search control
-     *
-     * @param search                the search annotation
-     * @param formControlDescriptor the form control descriptor
-     */
-    private void fromSearch(Search search, FormControlDescriptor formControlDescriptor) {
-
-        String packageName = search.vo().getPackage().getName();
-
-        TableDescriptor tableDescriptor = new TableDescriptor();
-        tableDescriptor.setTitle(MessageUtil.getMessageFromKey(messageSource, packageName + ".title", null, locale));
-        tableDescriptor.setPaginated(true);
-        tableDescriptor.setLoadOnInit(false);
-        tableDescriptor.setPath(search.endpoint());
-        tableDescriptor.setColumns(getColumns(search.vo()));
-        tableDescriptor.setSearch(getSearchDescriptor(search.form()));
-
-        formControlDescriptor.setControlType(String.valueOf(ControlType.search));
-        formControlDescriptor.setControlSearch(tableDescriptor);
-
-    }
-
-    /**
-     * Get search descriptor
-     *
-     * @param form the search form
-     * @return the search descriptor
-     */
-    private SearchDescriptor getSearchDescriptor(Class<?> form) {
-        SearchDescriptor searchDescriptor = new SearchDescriptor();
-        searchDescriptor.setControls(getControls(form, null));
-        EndpointManager endpointManager = new EndpointManager(form);
-        endpointManager.init(searchDescriptor);
-        return searchDescriptor;
-    }
-
-    /**
-     * Method for getting the search columns
-     *
-     * @param vo the applied VO
-     * @return list of columns info
-     */
-    private List<ColumnDescriptor> getColumns(Class<?> vo) {
-
-        String packageName = vo.getPackage().getName();
-
-        List<ColumnDescriptor> columns = new ArrayList<>();
-
-        Field[] fields = FieldUtils.getAllFields(vo);
-
-        for (Field field : fields) {
-
-            String labelKey = String.format("%s.%s.label", packageName, field.getName());
-
-            ColumnDescriptor columnDescriptor = new ColumnDescriptor();
-            columnDescriptor.setId(field.getName());
-            columnDescriptor.setLabel(MessageUtil.getMessageFromKey(messageSource, labelKey, null, locale));
-            columns.add(columnDescriptor);
-
-        }
-
-        //append action column
-        columns.add(getActionColumn());
-
-        return columns;
-
-    }
-
-    private ColumnDescriptor getActionColumn() {
-        ColumnDescriptor columnDescriptor = new ColumnDescriptor();
-        columnDescriptor.setId("actionSearch");
-        columnDescriptor.setLabel(MessageUtil.getMessageFromKey(messageSource, "actions.label", null, locale));
-        columnDescriptor.setActions(getActions());
-        return columnDescriptor;
-    }
-
-    private List<ActionDescriptor> getActions() {
-        List<ActionDescriptor> actions = new ArrayList<>();
-        ActionDescriptor actionDescriptor = new ActionDescriptor();
-        actionDescriptor.setLabel(MessageUtil.getMessageFromKey(messageSource, "selection.label", null, locale));
-        actionDescriptor.setAction(ActionType.select);
-        actions.add(actionDescriptor);
-        return actions;
     }
 
 }
