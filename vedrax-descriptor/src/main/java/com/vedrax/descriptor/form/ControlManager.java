@@ -284,6 +284,17 @@ public class ControlManager {
         }
 
         autocompleteDescriptor.setDefaultParams(params);
+
+        List<NVP> filters = new ArrayList<>();
+        for (String filter : autocomplete.filters()) {
+            NVP nameValuePair = new NVP();
+            nameValuePair.setKey(filter);
+            nameValuePair.setValue(MessageUtil.getMessageFromKey(messageSource, "filter." + filter, null, locale));
+            filters.add(nameValuePair);
+        }
+
+        autocompleteDescriptor.setFilters(filters);
+
         formControlDescriptor.setControlSearch(autocompleteDescriptor);
     }
 

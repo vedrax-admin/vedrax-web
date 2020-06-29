@@ -16,4 +16,5 @@ public class AutocompleteDescriptor {
     private String endpoint;
     private String displayKey;
     private List<NVP> defaultParams = new ArrayList<>();
+    private List<NVP> filters = new ArrayList<>();
 }

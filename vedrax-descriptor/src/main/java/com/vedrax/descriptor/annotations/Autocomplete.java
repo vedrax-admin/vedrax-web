@@ -11,4 +11,5 @@ public @interface Autocomplete {
     String endpoint();
     String displayAttribute();
     String[] params() default {};
+    String[] filters() default {};
 }
