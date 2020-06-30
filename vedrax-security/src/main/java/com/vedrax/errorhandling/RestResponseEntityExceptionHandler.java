@@ -22,6 +22,8 @@ import javax.validation.ConstraintViolationException;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 
@@ -33,6 +35,8 @@ import static org.springframework.http.HttpStatus.BAD_REQUEST;
 @ControllerAdvice
 @Order(Ordered.HIGHEST_PRECEDENCE)
 public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionHandler {
+
+  Logger LOG = Logger.getLogger(RestResponseEntityExceptionHandler.class.getName());
 
   @Override
   protected ResponseEntity<Object> handleMethodArgumentNotValid(
@@ -169,9 +173,8 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
    */
   @ExceptionHandler({Exception.class})
   public ResponseEntity<Object> handleAll(Exception ex, WebRequest request) {
-    logger.info(ex.getClass().getName());
-    logger.info(request.getContextPath());
-    logger.error("error", ex);
+
+    LOG.log(Level.SEVERE, ex.getLocalizedMessage(), ex);
 
     ApiError apiError = new ApiError(HttpStatus.INTERNAL_SERVER_ERROR, ex);
     return buildResponseEntity(apiError);
