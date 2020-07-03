@@ -27,6 +27,8 @@ public class FormControlDescriptor {
   @JsonInclude(JsonInclude.Include.NON_EMPTY)
   private List<NVP> controlOptions = new ArrayList<>();
   @JsonInclude(JsonInclude.Include.NON_EMPTY)
+  private List<String> controlKeysAsTitle = new ArrayList<>();
+  @JsonInclude(JsonInclude.Include.NON_EMPTY)
   private List<FormControlDescriptor> controlChildren = new ArrayList<>();
   private AutocompleteDescriptor controlSearch;
 

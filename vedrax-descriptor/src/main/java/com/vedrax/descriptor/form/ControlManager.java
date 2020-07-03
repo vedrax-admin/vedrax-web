@@ -307,6 +307,7 @@ public class ControlManager {
     private void fromChildren(Children children, FormControlDescriptor formControlDescriptor) {
         List<FormControlDescriptor> controls = getControls(children.type(), null);
         formControlDescriptor.setControlChildren(controls);
+        formControlDescriptor.setControlKeysAsTitle(Arrays.asList(children.controlKeysAsTitle()));
         formControlDescriptor.setControlType(String.valueOf(ControlType.arrayOfControls));
     }
 
