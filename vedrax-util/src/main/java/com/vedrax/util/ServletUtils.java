@@ -1,6 +1,7 @@
 package com.vedrax.util;
 
 import org.apache.commons.lang3.EnumUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.springframework.util.Assert;
 
 import javax.servlet.http.HttpServletRequest;
@@ -26,7 +27,12 @@ public class ServletUtils {
 
     public static Long getLongParameter(HttpServletRequest request, String name) {
         String param = getStringParameter(request, name);
-        return NumUtils.valueOf(param);
+        return NumberUtils.createLong(param);
+    }
+
+    public static Integer getIntParameter(HttpServletRequest request, String name) {
+        String param = getStringParameter(request, name);
+        return NumberUtils.createInteger(param);
     }
 
     public static Date getDateParameter(HttpServletRequest request, String name) {
