@@ -54,6 +54,12 @@
       <artifactId>gson</artifactId>
     </dependency>
 
+    <!-- itext -->
+    <dependency>
+      <groupId>com.itextpdf</groupId>
+      <artifactId>itextpdf</artifactId>
+    </dependency>
+
   </dependencies>
 
 </project>
