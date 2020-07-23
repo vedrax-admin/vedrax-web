@@ -7,7 +7,6 @@ import com.itextpdf.text.pdf.PdfPTable;
 import org.springframework.util.Assert;
 
 import java.util.List;
-import java.util.Map;
 
 public class PdfUtils {
 
@@ -71,7 +70,7 @@ public class PdfUtils {
 
         PdfPTable table = getTable(1, new int[]{1}, Rectangle.BOX,
                 Element.ALIGN_CENTER, Element.ALIGN_LEFT);
-        table.setSpacingBefore(10f);
+        //table.setSpacingBefore(10f);
 
         table.addCell(getCell(font10b, title, Rectangle.BOX, Element.ALIGN_CENTER, Element.ALIGN_CENTER, BaseColor.LIGHT_GRAY));
         table.addCell(items);
@@ -187,6 +186,14 @@ public class PdfUtils {
         cell.setVerticalAlignment(verticalAlignment);
         cell.setBackgroundColor(backgroundColor);
         return cell;
+    }
+
+    public static PdfPCell getCellAsTitle(String title) {
+        return getCell(font10b, title, Rectangle.BOX, Element.ALIGN_CENTER, Element.ALIGN_CENTER, BaseColor.LIGHT_GRAY);
+    }
+
+    public static PdfPCell getCellAsDefault(String text, int border, int horizontalAlignment){
+        return getCell(font10, text, border, horizontalAlignment, Element.ALIGN_CENTER, BaseColor.WHITE);
     }
 
 }

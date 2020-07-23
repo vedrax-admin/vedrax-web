@@ -32,6 +32,16 @@ public class JsonUtils {
     return gson.fromJson(json, type);
   }
 
+  public static <T> T fromJson(String json,Class<T> type) {
+
+    if (json == null) {
+      return null;
+    }
+
+    Gson gson = new Gson();
+    return gson.fromJson(json, type);
+  }
+
   public static <T> String listToJson(List<T> values) {
     Gson gson = new Gson();
     Type type = new TypeToken<ArrayList<T>>() {

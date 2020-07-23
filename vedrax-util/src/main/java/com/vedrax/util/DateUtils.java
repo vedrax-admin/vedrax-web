@@ -3,6 +3,8 @@ package com.vedrax.util;
 import org.apache.commons.lang3.Validate;
 import org.springframework.util.Assert;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.time.DateTimeException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -19,7 +21,6 @@ import static java.time.temporal.ChronoUnit.DAYS;
 import static java.time.temporal.ChronoUnit.MONTHS;
 
 /**
- *
  * @author remypenchenat
  */
 public class DateUtils {
@@ -203,7 +204,6 @@ public class DateUtils {
     }
 
     /**
-     *
      * Get the formatting ISO date to the following format yyyyMM.
      *
      * @param dateStr - The string to parse
@@ -219,6 +219,16 @@ public class DateUtils {
 
         //apply formatter
         return currentDate.format(formatter);
+    }
+
+    public static String printDateWithFormat(Date date, String format) {
+        Validate.notNull(date, "date must be provided");
+        Validate.notNull(format, "format must be provided");
+
+        //get formatter
+        DateFormat formatter = new SimpleDateFormat(format);
+        return formatter.format(date);
+
     }
 
     /**
@@ -317,7 +327,7 @@ public class DateUtils {
      * Add days to a specific date
      *
      * @param date - The date to add
-     * @param n - The number of days to add
+     * @param n    - The number of days to add
      * @return Date
      */
     public static Date addDaysToDate(Date date, long n) {
@@ -340,8 +350,8 @@ public class DateUtils {
      * Add Unit to Local Date
      *
      * @param localDate - The localDate to add unit
-     * @param n - The unit number
-     * @param unit - Days, Month, Year
+     * @param n         - The unit number
+     * @param unit      - Days, Month, Year
      * @return LocalDate
      */
     public static LocalDate addUnitToLocalDate(LocalDate localDate, long n, TemporalUnit unit) {
@@ -388,19 +398,19 @@ public class DateUtils {
         return localDatePlusUnits;
     }
 
-    public static LocalDate getFirstDayOfNextMonth(){
+    public static LocalDate getFirstDayOfNextMonth() {
         LocalDate now = LocalDate.now();
         return now.with(TemporalAdjusters.firstDayOfNextMonth());
     }
 
-    public static LocalDate getLastDayOfMonth(LocalDate localDate){
+    public static LocalDate getLastDayOfMonth(LocalDate localDate) {
         Assert.notNull(localDate, "localDate must not be null");
 
         return localDate.with(TemporalAdjusters.lastDayOfMonth());
     }
 
-    public static long getCurrentTimeAsLong(){
-      return new Date().getTime();
+    public static long getCurrentTimeAsLong() {
+        return new Date().getTime();
     }
 
 }
