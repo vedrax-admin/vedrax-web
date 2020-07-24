@@ -56,6 +56,12 @@
         <version>${appengine.api.version}</version>
       </dependency>
 
+      <dependency>
+        <groupId>com.google.appengine.tools</groupId>
+        <artifactId>appengine-gcs-client</artifactId>
+        <version>0.8</version>
+      </dependency>
+
       <!-- Spring boot dependency management -->
       <dependency>
         <groupId>org.springframework.boot</groupId>
