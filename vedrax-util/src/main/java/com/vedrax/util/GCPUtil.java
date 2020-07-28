@@ -3,28 +3,26 @@ package com.vedrax.util;
 import com.google.appengine.api.blobstore.BlobKey;
 import com.google.appengine.api.blobstore.BlobstoreService;
 import com.google.appengine.api.blobstore.BlobstoreServiceFactory;
-import com.google.appengine.api.modules.ModulesService;
-import com.google.appengine.api.modules.ModulesServiceFactory;
 import com.google.appengine.api.taskqueue.RetryOptions;
-import com.google.appengine.api.urlfetch.ResponseTooLargeException;
+import com.google.appengine.api.urlfetch.*;
 import com.google.appengine.tools.cloudstorage.*;
 import org.apache.commons.lang3.Validate;
 import com.google.appengine.api.taskqueue.Queue;
 import com.google.appengine.api.taskqueue.QueueFactory;
 import com.google.appengine.api.taskqueue.TaskOptions;
-import org.springframework.util.Assert;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
-import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.channels.Channels;
+import java.nio.charset.Charset;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class GCPUtil {
 
+    private static final Charset UTF8 = Charset.forName("UTF-8");
     private static final Logger LOG = Logger.getLogger(GCPUtil.class.getName());
     public static final boolean SERVE_USING_BLOBSTORE_API = false;
 
@@ -58,42 +56,52 @@ public class GCPUtil {
         queue.add(options);
     }
 
-    public static String fetchModuleURL(String moduleId, String path) {
-        Validate.notNull(moduleId, "moduleId must be provided");
+    public static String fetchModuleURL(String projectId, String regionId, String path, String securityToken) {
+        Validate.notNull(projectId, "projectId must be provided");
+        Validate.notNull(regionId, "regionId must be provided");
         Validate.notNull(path, "path must be provided");
-
-        ModulesService modulesService = ModulesServiceFactory.getModulesService();
+        Validate.notNull(securityToken, "securityToken must be provided");
 
         try {
-            URL url = new URL("http://" + modulesService.getVersionHostname(moduleId, null) + "/" + path);
-            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-            // Enable output for the connection.
-            conn.setDoOutput(true);
-            conn.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
-            conn.setRequestProperty("Accept", "application/json");
-            conn.setRequestMethod("GET");
 
-            int respCode = conn.getResponseCode(); // New items get NOT_FOUND on PUT
-            if (respCode == HttpURLConnection.HTTP_OK) {
-                StringBuilder response = new StringBuilder();
-                String line;
+            String urlString = String.format("https://%s.%s.r.appspot.com/%s", projectId, regionId, path);
 
-                // Read input data stream.
-                BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-                while ((line = reader.readLine()) != null) {
-                    response.append(line);
-                }
-                reader.close();
-                return response.toString();
-            } else {
-                throw new IllegalArgumentException("Cannot access resource at [" + path + "] with errors [" + conn.getResponseCode() + "] - " + conn.getResponseMessage());
-            }
+            URL url = new URL(urlString);
+
+            FetchOptions options = FetchOptions.Builder
+                    .withDeadline(500)
+                    .doNotFollowRedirects()
+                    .disallowTruncate()
+                    .doNotValidateCertificate();
+
+            HTTPRequest request = new HTTPRequest(url, HTTPMethod.GET, options);
+
+            request.addHeader(new HTTPHeader("Content-Type", "application/json; charset=UTF-8"));
+            request.addHeader(new HTTPHeader("Accept", "application/json"));
+            request.addHeader(new HTTPHeader("Authorization", String.format("Bearer %s", securityToken)));
+
+            URLFetchService urlFetch = URLFetchServiceFactory.getURLFetchService();
+
+            HTTPResponse response = urlFetch.fetch(request);
+
+            return processResponse(response);
         } catch (ResponseTooLargeException | IOException ex) {
             throw new IllegalArgumentException("cannot fetch resources from the URL: " + path, ex);
         }
     }
 
+    public static String processResponse(HTTPResponse response) {
+        String content = new String(response.getContent(), UTF8);
+
+        if (response.getResponseCode() >= 400) {
+            throw new RuntimeException("HttpError:" + response.getResponseCode() + "\n" + content);
+        }
+        return content;
+    }
+
     public static void readingFromCloudStorage(HttpServletResponse resp, String bucketName, String objectName) {
+
+
         try {
             GcsFilename fileName = new GcsFilename(bucketName, objectName);
             if (SERVE_USING_BLOBSTORE_API) {
