@@ -16,10 +16,14 @@ public class PdfUtils {
     public static Font font8b = FontFactory.getFont(FontFactory.COURIER_BOLD, 8, BaseColor.BLACK);
     public static Font font9 = FontFactory.getFont(FontFactory.COURIER, 9, BaseColor.BLACK);
     public static Font font10 = FontFactory.getFont(FontFactory.COURIER, 10, BaseColor.BLACK);
+    public static Font font10o = FontFactory.getFont(FontFactory.COURIER_OBLIQUE, 10, BaseColor.BLACK);
     public static Font font10b = FontFactory.getFont(FontFactory.COURIER_BOLD, 10, BaseColor.BLACK);
     public static Font font12 = FontFactory.getFont(FontFactory.COURIER, 12, BaseColor.BLACK);
+    public static Font font12o = FontFactory.getFont(FontFactory.COURIER_OBLIQUE, 12, BaseColor.BLACK);
     public static Font font12b = FontFactory.getFont(FontFactory.COURIER_BOLD, 12, BaseColor.BLACK);
     public static Font font14 = FontFactory.getFont(FontFactory.COURIER, 14, BaseColor.BLACK);
+    public static Font font14o = FontFactory.getFont(FontFactory.COURIER_OBLIQUE, 14, BaseColor.BLACK);
+    public static Font font14b = FontFactory.getFont(FontFactory.COURIER_BOLD, 14, BaseColor.BLACK);
 
     public static PdfPCell getAddress(String companyName, String address, String zip, String city) {
         PdfPCell cell = new PdfPCell();
