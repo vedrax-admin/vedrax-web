@@ -19,8 +19,10 @@ public class PdfUtils {
     public static Font font10o = FontFactory.getFont(FontFactory.COURIER_OBLIQUE, 10, BaseColor.BLACK);
     public static Font font10b = FontFactory.getFont(FontFactory.COURIER_BOLD, 10, BaseColor.BLACK);
     public static Font font12 = FontFactory.getFont(FontFactory.COURIER, 12, BaseColor.BLACK);
+    public static Font font12Red = FontFactory.getFont(FontFactory.COURIER, 12, BaseColor.RED);
     public static Font font12o = FontFactory.getFont(FontFactory.COURIER_OBLIQUE, 12, BaseColor.BLACK);
     public static Font font12b = FontFactory.getFont(FontFactory.COURIER_BOLD, 12, BaseColor.BLACK);
+    public static Font font12bRed = FontFactory.getFont(FontFactory.COURIER_BOLD, 12, BaseColor.RED);
     public static Font font14 = FontFactory.getFont(FontFactory.COURIER, 14, BaseColor.BLACK);
     public static Font font14o = FontFactory.getFont(FontFactory.COURIER_OBLIQUE, 14, BaseColor.BLACK);
     public static Font font14b = FontFactory.getFont(FontFactory.COURIER_BOLD, 14, BaseColor.BLACK);
@@ -34,6 +36,19 @@ public class PdfUtils {
         p = new Paragraph(address, font12);
         cell.addElement(p);
         p = new Paragraph(String.format("%s %s", zip, city), font12);
+        cell.addElement(p);
+        return cell;
+    }
+
+    public static PdfPCell getAddressRed(String companyName, String address, String zip, String city) {
+        PdfPCell cell = new PdfPCell();
+        cell.setBorder(Rectangle.NO_BORDER);
+        cell.setVerticalAlignment(Rectangle.ALIGN_MIDDLE);
+        Paragraph p = new Paragraph(companyName, font12bRed);
+        cell.addElement(p);
+        p = new Paragraph(address, font12Red);
+        cell.addElement(p);
+        p = new Paragraph(String.format("%s %s", zip, city), font12Red);
         cell.addElement(p);
         return cell;
     }
