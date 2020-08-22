@@ -110,4 +110,11 @@ public class NumUtils {
         return NumberUtils.parseNumber(value, Long.class);
     }
 
+    public static BigDecimal safeGetNumber(BigDecimal number) {
+        if (number == null) {
+            return BigDecimal.ZERO;
+        }
+        return number;
+    }
+
 }
