@@ -12,7 +12,6 @@ public class GCPFetchModuleBuilder {
     private final String projectId;
     private final String locationId;
     private final String path;
-    private String securityToken;
 
     public GCPFetchModuleBuilder(String projectId, String locationId, String path) {
         Objects.requireNonNull(projectId, "projectId must be provided");
@@ -24,14 +23,9 @@ public class GCPFetchModuleBuilder {
         this.path = path;
     }
 
-    public GCPFetchModuleBuilder withSecurityToken(String securityToken) {
-        this.securityToken = securityToken;
-        return this;
-    }
-
     public String fetchURL() throws IOException {
 
-        String urlString = String.format("https://%s.%s.r.appspot.com/%s", projectId, locationId, path);
+        String urlString = String.format("http://%s.%s.r.appspot.com/%s", projectId, locationId, path);
 
         URL url = new URL(urlString);
 
@@ -42,7 +36,6 @@ public class GCPFetchModuleBuilder {
         conn.setInstanceFollowRedirects(false);
         conn.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
         conn.setRequestProperty("Accept", "application/json");
-        conn.setRequestProperty("Authorization", String.format("Bearer %s", securityToken));
         // Set HTTP request method.
         conn.setRequestMethod("GET");
 

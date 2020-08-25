@@ -15,8 +15,7 @@ public class GCPTaskBuilder {
     private final String projectId;
     private final String locationId;
     private final String uri;
-    private String securityToken;
-    private Map<String, String> params = new HashMap<>();
+    private final Map<String, String> params = new HashMap<>();
 
     public GCPTaskBuilder(String projectId, String locationId, String uri) {
         Objects.requireNonNull(projectId, "projectId must be provided");
@@ -26,11 +25,6 @@ public class GCPTaskBuilder {
         this.projectId = projectId;
         this.locationId = locationId;
         this.uri = uri;
-    }
-
-    public GCPTaskBuilder withSecurityToken(String securityToken) {
-        this.securityToken = securityToken;
-        return this;
     }
 
     public GCPTaskBuilder withParameter(String key, String value) {
@@ -50,7 +44,6 @@ public class GCPTaskBuilder {
                     .setAppEngineHttpRequest(
                             AppEngineHttpRequest.newBuilder()
                                     .setRelativeUri(uri)
-                                    .putHeaders("Authorization", String.format("Bearer %s", securityToken))
                                     .setBody(ByteString.copyFromUtf8(convertParamsWithStream()))
                                     .setHttpMethod(HttpMethod.POST)
                                     .build())
