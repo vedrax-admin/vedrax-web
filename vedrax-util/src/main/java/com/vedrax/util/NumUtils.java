@@ -18,6 +18,19 @@ public class NumUtils {
         return NumberUtils.parseNumber(value, BigDecimal.class);
     }
 
+    public static String toNumberFormat(BigDecimal n, int decimal){
+        Validate.isTrue(decimal >= 0, "scale must be greater than 0");
+
+        if (n == null) {
+            return "0.00";
+        }
+
+        DecimalFormat df = new DecimalFormat();
+        df.setMaximumFractionDigits(decimal);
+        df.setMinimumFractionDigits(0);
+        return df.format(n);
+    }
+
     public static String toCurrencyFormat(BigDecimal n) {
         if (n == null) {
             return "0.00";

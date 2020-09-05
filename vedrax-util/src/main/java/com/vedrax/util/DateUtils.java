@@ -222,8 +222,9 @@ public class DateUtils {
     }
 
     public static String printDateWithFormat(Date date, String format) {
-        Validate.notNull(date, "date must be provided");
-        Validate.notNull(format, "format must be provided");
+        if(date == null){
+            return "";
+        }
 
         //get formatter
         DateFormat formatter = new SimpleDateFormat(format);
