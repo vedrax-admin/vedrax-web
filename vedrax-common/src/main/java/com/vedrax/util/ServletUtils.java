@@ -5,9 +5,14 @@ import org.apache.commons.lang3.math.NumberUtils;
 import org.springframework.util.Assert;
 
 import javax.servlet.http.HttpServletRequest;
+import java.io.IOException;
 import java.time.LocalDate;
 import java.util.Base64;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+
+import static com.vedrax.util.JsonUtils.jsonToMap;
 
 public class ServletUtils {
 
@@ -16,6 +21,13 @@ public class ServletUtils {
         Assert.notNull(name, "name must not be null!");
 
         return request.getParameter(name);
+    }
+
+    public static Map<String, String> getPayload(HttpServletRequest request) throws IOException {
+        String body = request.getReader()
+                .lines()
+                .reduce("", (accumulator, actual) -> accumulator + actual);
+        return jsonToMap(body);
     }
 
     public static <T extends Enum<T>> T getEnumParameter(HttpServletRequest request,

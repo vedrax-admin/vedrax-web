@@ -11,7 +11,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
+
+import static com.vedrax.util.JsonUtils.mapToJson;
 
 public class GCPTask implements GCPTaskService {
 
@@ -53,7 +54,7 @@ public class GCPTask implements GCPTaskService {
                             AppEngineHttpRequest.newBuilder()
                                     .putHeaders(AUTHORIZATION_HEADER, String.format("Bearer %s", TokenUtility.getAdminToken()))
                                     .setRelativeUri(uri)
-                                    .setBody(ByteString.copyFromUtf8(convertParamsWithStream(params)))
+                                    .setBody(ByteString.copyFromUtf8(mapToJson(params)))
                                     .setHttpMethod(HttpMethod.POST)
                                     .build())
                     .build();
@@ -89,7 +90,7 @@ public class GCPTask implements GCPTaskService {
                             AppEngineHttpRequest.newBuilder()
                                     .putHeaders(AUTHORIZATION_HEADER, String.format("Bearer %s", TokenUtility.getAdminToken()))
                                     .setRelativeUri(uri)
-                                    .setBody(ByteString.copyFromUtf8(convertParamsWithStream(params)))
+                                    .setBody(ByteString.copyFromUtf8(mapToJson(params)))
                                     .setHttpMethod(HttpMethod.POST)
                                     .build())
                     .build();
@@ -106,14 +107,6 @@ public class GCPTask implements GCPTaskService {
     private String getFullQualifiedQueueName() {
 
         return QueueName.of(projectId, locationId, queueId).toString();
-    }
-
-    private String convertParamsWithStream(Map<String, String> params) {
-        Validate.notEmpty(params, "params must not be empty");
-
-        return params.keySet().stream()
-                .map(key -> key + "=" + params.get(key))
-                .collect(Collectors.joining("&"));
     }
 
 }

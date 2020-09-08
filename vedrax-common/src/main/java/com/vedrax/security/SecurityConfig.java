@@ -47,6 +47,17 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             new AntPathRequestMatcher("/um/api/**"),
             new AntPathRequestMatcher("/assessment/api/**"),
             new AntPathRequestMatcher("/pdt/api/**"),
+            new AntPathRequestMatcher("/ab/api/**"),
+            new AntPathRequestMatcher("/um/admin/**"),
+            new AntPathRequestMatcher("/assessment/admin/**"),
+            new AntPathRequestMatcher("/pdt/admin/**"),
+            new AntPathRequestMatcher("/ab/admin/**"));
+
+    /*
+    private final RequestMatcher API_URLS = new OrRequestMatcher(
+            new AntPathRequestMatcher("/um/api/**"),
+            new AntPathRequestMatcher("/assessment/api/**"),
+            new AntPathRequestMatcher("/pdt/api/**"),
             new AntPathRequestMatcher("/ab/api/**"));
 
     private final RequestMatcher ADMIN_URLS = new OrRequestMatcher(
@@ -54,6 +65,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             new AntPathRequestMatcher("/assessment/admin/**"),
             new AntPathRequestMatcher("/pdt/admin/**"),
             new AntPathRequestMatcher("/ab/admin/**"));
+
+     */
 
     private AuthenticationProvider provider;
 
@@ -91,7 +104,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 // authorization requests config
                 .authorizeRequests()
                 // Set Admin URL
-                .requestMatchers(ADMIN_URLS).hasRole("ADMIN")
+                //.requestMatchers(ADMIN_URLS).hasRole("ADMIN")
                 // Set other Urls
                 .requestMatchers(API_URLS)
                 .authenticated()
