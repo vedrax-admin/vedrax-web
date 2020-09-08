@@ -23,11 +23,8 @@
     </organization>
 
     <modules>
-        <module>vedrax-security</module>
-        <module>vedrax-descriptor</module>
-        <module>vedrax-util</module>
-        <module>vedrax-jpa</module>
         <module>vedrax-math</module>
+        <module>vedrax-common</module>
     </modules>
 
     <dependencyManagement>
