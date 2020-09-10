@@ -34,7 +34,7 @@ public class GCPFetch implements GCPFetchService {
     public Optional<String> fetchURL(String path) {
         Validate.notNull(path, "path must be provided");
 
-        String urlString = String.format("http://%s.%s.r.appspot.com/%s", projectId, regionId, path);
+        String urlString = String.format("https://%s.%s.r.appspot.com/%s", projectId, regionId, path);
 
         try {
 
@@ -42,7 +42,7 @@ public class GCPFetch implements GCPFetchService {
 
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             // Enable output for the connection.
-            conn.setDoOutput(true);
+            conn.setReadTimeout(48000);
             conn.setConnectTimeout(480000);//8 minutes timeout
             conn.setInstanceFollowRedirects(false);
             conn.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
@@ -60,12 +60,16 @@ public class GCPFetch implements GCPFetchService {
                     response.append(line);
                 }
                 reader.close();
+
                 return Optional.of(response.toString());
+            } else {
+                LOG.log(Level.SEVERE, String.format("Error fetching the resource  with code [%s]", urlString), conn.getResponseCode());
             }
 
         } catch (IOException ex) {
             LOG.log(Level.SEVERE, String.format("Error fetching the resource [%s]", urlString), ex);
         }
+
 
         return Optional.empty();
 
