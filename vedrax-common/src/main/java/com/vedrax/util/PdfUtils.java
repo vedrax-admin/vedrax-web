@@ -6,7 +6,10 @@ import com.itextpdf.text.pdf.PdfPCell;
 import com.itextpdf.text.pdf.PdfPTable;
 import org.springframework.util.Assert;
 
+import java.math.BigDecimal;
 import java.util.List;
+
+import static com.vedrax.util.NumUtils.toNumberFormat;
 
 public class PdfUtils {
 
@@ -67,7 +70,9 @@ public class PdfUtils {
     }
 
     public static PdfPTable getNote(String title, String note) throws DocumentException {
-        return getOneColumnLayout(title, getCell(font8, note, Rectangle.BOX, Element.ALIGN_LEFT, Element.ALIGN_LEFT, BaseColor.WHITE));
+        PdfPTable table = getOneColumnLayout(title, getCell(font8, note, Rectangle.BOX, Element.ALIGN_LEFT, Element.ALIGN_LEFT, BaseColor.WHITE));
+        table.setSpacingBefore(10);
+        return table;
     }
 
     public static PdfPTable getNameValuePair(List<CellItem> values, int horizontalAlignment) throws DocumentException {
@@ -208,11 +213,28 @@ public class PdfUtils {
     }
 
     public static PdfPCell getCellAsTitle(String title) {
-        return getCell(font10b, title, Rectangle.BOX, Element.ALIGN_CENTER, Element.ALIGN_CENTER, BaseColor.LIGHT_GRAY);
+        return getCell(font8b, title, Rectangle.BOX, Element.ALIGN_CENTER, Element.ALIGN_CENTER, BaseColor.LIGHT_GRAY);
     }
 
-    public static PdfPCell getCellAsDefault(String text, int border, int horizontalAlignment){
-        return getCell(font10, text, border, horizontalAlignment, Element.ALIGN_CENTER, BaseColor.WHITE);
+    public static PdfPCell getCellAsDefault(String text, int border, int horizontalAlignment) {
+        return getCell(font8, text, border, horizontalAlignment, Element.ALIGN_CENTER, BaseColor.WHITE);
     }
+
+    public static Phrase initCellAsText(String text) {
+        text = text == null ? "" : text;
+
+        FontSelector fs = new FontSelector();
+        fs.addFont(font10);
+        return fs.process(text);
+    }
+
+    public static Phrase initCellAsNumber(BigDecimal value, int decimal) {
+        value = value == null ? BigDecimal.ZERO : value;
+
+        FontSelector fs = new FontSelector();
+        fs.addFont(font10);
+        return fs.process(toNumberFormat(value, decimal));
+    }
+
 
 }

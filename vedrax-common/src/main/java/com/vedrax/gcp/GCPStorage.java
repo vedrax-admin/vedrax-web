@@ -5,6 +5,7 @@ import org.apache.commons.lang3.Validate;
 
 import java.io.OutputStream;
 import java.util.Objects;
+import java.util.Optional;
 
 public class GCPStorage implements GCPStorageService {
 
@@ -34,8 +35,16 @@ public class GCPStorage implements GCPStorageService {
         Validate.notNull(objectName, "objectName must be provided");
         Validate.notNull(output, "output must be provided");
 
-        Blob blob = storage.get(BlobId.of(bucketName, objectName));
-        blob.downloadTo(output);
+        Optional<Blob> blob = getBlob(objectName);
+
+        blob.ifPresent(value -> value.downloadTo(output));
+    }
+
+    @Override
+    public Optional<Blob> getBlob(String objectName) {
+        Validate.notNull(objectName, "objectName must be provided");
+
+        return Optional.ofNullable(storage.get(BlobId.of(bucketName, objectName)));
     }
 
 
