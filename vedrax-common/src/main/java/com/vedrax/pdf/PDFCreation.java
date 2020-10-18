@@ -5,8 +5,10 @@ import com.itextpdf.text.Font;
 import com.itextpdf.text.Paragraph;
 import com.itextpdf.text.pdf.PdfPCell;
 import com.itextpdf.text.pdf.PdfPTable;
+import com.vedrax.util.CellItem;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 public interface PDFCreation {
 
@@ -75,11 +77,12 @@ public interface PDFCreation {
     /**
      * Method for formatting key/value as a list
      *
-     * @param nameValuePairFormat the data
+     * @param items the data
+     * @param horizontalAlignment horizontal alignment
      * @return table of key/value as list
      * @throws DocumentException exception
      */
-    PdfPTable createNameValuePair(NameValuePairFormat nameValuePairFormat) throws DocumentException;
+    PdfPTable createNameValuePair(List<CellItem> items, int horizontalAlignment) throws DocumentException;
 
     /**
      * Method for creating a card
@@ -90,6 +93,16 @@ public interface PDFCreation {
      * @throws DocumentException exception
      */
     PdfPTable getCard(String title, PdfPTable items) throws DocumentException;
+
+    /**
+     * Method for creating a card
+     *
+     * @param title the title
+     * @param nvp  the items as a cell to be inserted
+     * @return table
+     * @throws DocumentException exception
+     */
+    PdfPTable getCard(String title, NameValuePairFormat nvp) throws DocumentException;
 
     /**
      * Method for creating a card

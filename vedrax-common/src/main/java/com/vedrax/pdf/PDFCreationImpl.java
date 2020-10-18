@@ -9,6 +9,7 @@ import org.apache.commons.lang3.Validate;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 import static com.vedrax.util.NumUtils.toNumberFormat;
 
@@ -66,16 +67,15 @@ public class PDFCreationImpl implements PDFCreation {
     }
 
     @Override
-    public PdfPTable createNameValuePair(NameValuePairFormat nameValuePairFormat) throws DocumentException {
-        Validate.notNull(nameValuePairFormat, "nameValuePairFormat must be provided");
-        Validate.notEmpty(nameValuePairFormat.getValues(), "No values provided");
+    public PdfPTable createNameValuePair(List<CellItem> items, int horizontalAlignment) throws DocumentException {
+        Validate.notEmpty(items, "No values provided");
 
         PdfPTable table = createTable(getTableConfigForNVP());
 
         CellConfig keyConfig = getCellConfigForNVP(true, Element.ALIGN_LEFT);
-        CellConfig valueConfig = getCellConfigForNVP(false, nameValuePairFormat.getHorizontalAlignment());
+        CellConfig valueConfig = getCellConfigForNVP(false, horizontalAlignment);
 
-        for (CellItem item : nameValuePairFormat.getValues()) {
+        for (CellItem item : items) {
             addKeyToNVP(keyConfig, table, item);
             addValueToNVP(valueConfig, table, item);
         }
@@ -145,6 +145,11 @@ public class PDFCreationImpl implements PDFCreation {
         cell.setVerticalAlignment(cellConfig.getVerticalAlignment());
         cell.setBackgroundColor(cellConfig.getBackgroundColor());
         return cell;
+    }
+
+    @Override
+    public PdfPTable getCard(String title, NameValuePairFormat nvp) throws DocumentException {
+        return getCard(title, createNameValuePair(nvp.getValues(), nvp.getHorizontalAlignment()));
     }
 
     @Override

@@ -10,7 +10,6 @@ import java.util.List;
 @NoArgsConstructor
 public class NameValuePairFormat {
 
-    private String title;
     private List<CellItem> values;
     int horizontalAlignment;
 }
