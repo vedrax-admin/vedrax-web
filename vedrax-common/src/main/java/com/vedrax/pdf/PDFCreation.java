@@ -1,5 +1,6 @@
 package com.vedrax.pdf;
 
+import com.itextpdf.text.BaseColor;
 import com.itextpdf.text.DocumentException;
 import com.itextpdf.text.Font;
 import com.itextpdf.text.Paragraph;
@@ -20,6 +21,15 @@ public interface PDFCreation {
      * @throws DocumentException exception
      */
     PdfPTable createTable(TableConfig tableConfig) throws DocumentException;
+
+    /**
+     * Method for getting a cell
+     * @param value the value to display
+     * @param bold is bold
+     * @param size the size
+     * @return cell
+     */
+    PdfPCell getCell(String value, boolean bold, int size);
 
     /**
      * Method for creating a table header cell

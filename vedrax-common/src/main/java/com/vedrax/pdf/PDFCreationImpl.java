@@ -26,7 +26,11 @@ public class PDFCreationImpl implements PDFCreation {
         table.setWidthPercentage(100);
         table.setWidths(tableConfig.getWidths());
         table.getDefaultCell().setBorder(tableConfig.getBorder());
-        table.getDefaultCell().setBorderColor(BaseColor.GRAY);
+
+        if (tableConfig.getBorder() == Rectangle.BOX) {
+            table.getDefaultCell().setBorderColor(BaseColor.BLACK);
+        }
+
         table.getDefaultCell().setHorizontalAlignment(tableConfig.getHorizontalAlignment());
         table.getDefaultCell().setVerticalAlignment(tableConfig.getVerticalAlignment());
         return table;
@@ -95,7 +99,7 @@ public class PDFCreationImpl implements PDFCreation {
 
     private CellConfig getCellConfigForNVP(boolean isBold, int horizontalAlignment) {
         CellConfig cellConfig = new CellConfig();
-        cellConfig.setFont(getBoldOrNormalFontForNVP(isBold));
+        cellConfig.setFont(getBoldOrNormalFontForNVP(isBold,10));
         cellConfig.setHorizontalAlignment(horizontalAlignment);
         cellConfig.setVerticalAlignment(Element.ALIGN_MIDDLE);
         return cellConfig;
@@ -103,17 +107,21 @@ public class PDFCreationImpl implements PDFCreation {
 
     private void addKeyToNVP(CellConfig cellConfig, PdfPTable table, CellItem item) {
         cellConfig.setText(item.getKey());
-        table.addCell(createCell(cellConfig));
+        PdfPCell cell = createCell(cellConfig);
+        cell.setBorder(Rectangle.NO_BORDER);
+        table.addCell(cell);
     }
 
     private void addValueToNVP(CellConfig cellConfig, PdfPTable table, CellItem item) {
         cellConfig.setText(item.getValue());
-        cellConfig.setFont(getBoldOrNormalFontForNVP(item.isBold()));
-        table.addCell(createCell(cellConfig));
+        cellConfig.setFont(getBoldOrNormalFontForNVP(item.isBold(), 10));
+        PdfPCell cell = createCell(cellConfig);
+        cell.setBorder(Rectangle.NO_BORDER);
+        table.addCell(cell);
     }
 
-    private Font getBoldOrNormalFontForNVP(boolean isBold) {
-        return getFont(isBold ? FontFactory.COURIER_BOLD : FontFactory.COURIER, 10);
+    private Font getBoldOrNormalFontForNVP(boolean isBold, int size) {
+        return getFont(isBold ? FontFactory.COURIER_BOLD : FontFactory.COURIER, size);
     }
 
     private PdfPCell createCell(CellConfig cellConfig) {
@@ -186,7 +194,7 @@ public class PDFCreationImpl implements PDFCreation {
         Validate.notNull(title, "title must be provided");
 
         PdfPTable table = createTable(getTableConfigForCard(Rectangle.BOX, Element.ALIGN_CENTER));
-        table.addCell(createCell(getCellConfigForCard(title)));
+        table.addCell(createCell(getCellConfigForTitle(title)));
         return table;
     }
 
@@ -198,15 +206,6 @@ public class PDFCreationImpl implements PDFCreation {
         tableConfig.setHorizontalAlignment(horizontalAlignment);
         tableConfig.setVerticalAlignment(Element.ALIGN_LEFT);
         return tableConfig;
-    }
-
-    private CellConfig getCellConfigForCard(String title) {
-        CellConfig cellConfig = new CellConfig();
-        cellConfig.setText(title);
-        cellConfig.setFont(getBoldOrNormalFontForNVP(true));
-        cellConfig.setHorizontalAlignment(Element.ALIGN_CENTER);
-        cellConfig.setVerticalAlignment(Element.ALIGN_CENTER);
-        return cellConfig;
     }
 
     @Override
@@ -223,6 +222,7 @@ public class PDFCreationImpl implements PDFCreation {
         table.addCell(left);
         addSeparator(table);
         table.addCell(right);
+        table.setSpacingAfter(10);
         return table;
     }
 
@@ -240,6 +240,7 @@ public class PDFCreationImpl implements PDFCreation {
         table.addCell(left);
         addSeparator(table);
         table.addCell(right);
+        table.setSpacingAfter(10);
         return table;
     }
 
@@ -258,6 +259,18 @@ public class PDFCreationImpl implements PDFCreation {
         PdfPCell middleCell = new PdfPCell();
         middleCell.setBorder(0);
         table.addCell(middleCell);
+    }
+
+    @Override
+    public PdfPCell getCell(String value, boolean bold, int size) {
+        CellConfig cellConfig = new CellConfig();
+        cellConfig.setText(value);
+        cellConfig.setFont(getBoldOrNormalFontForNVP(bold, size));
+        cellConfig.setHorizontalAlignment(Element.ALIGN_LEFT);
+        cellConfig.setVerticalAlignment(Element.ALIGN_CENTER);
+        PdfPCell cell = createCell(cellConfig);
+        cell.setBorder(Rectangle.NO_BORDER);
+        return cell;
     }
 
     @Override
@@ -308,6 +321,7 @@ public class PDFCreationImpl implements PDFCreation {
     public PdfPTable createNote(String note) throws DocumentException {
         PdfPTable table = createTable(getTableConfigForCard(Rectangle.NO_BORDER, Element.ALIGN_LEFT));
         table.addCell(createParagraph(note, getFont(FontFactory.COURIER, 8)));
+        table.setSpacingAfter(10);
         return table;
     }
 
