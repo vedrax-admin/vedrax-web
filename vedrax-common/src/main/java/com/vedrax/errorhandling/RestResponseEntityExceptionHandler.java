@@ -140,6 +140,11 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
     return buildResponseEntity(new ApiError(HttpStatus.INTERNAL_SERVER_ERROR, ex));
   }
 
+  @ExceptionHandler(org.hibernate.exception.ConstraintViolationException.class)
+  protected ResponseEntity<Object> handleHibernateException(org.hibernate.exception.ConstraintViolationException ex){
+    return buildResponseEntity(new ApiError(BAD_REQUEST, "Database integrity error", ex.getCause()));
+  }
+
   /**
    * When {@link AccessDeniedException} is thrown, returns HTTP status 403
    *

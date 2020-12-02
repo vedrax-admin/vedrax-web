@@ -16,9 +16,11 @@ import org.springframework.security.web.authentication.AnonymousAuthenticationFi
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.security.web.util.matcher.NegatedRequestMatcher;
 import org.springframework.security.web.util.matcher.OrRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 
+import javax.servlet.http.HttpServletResponse;
 import java.util.Objects;
 
 import static org.springframework.http.HttpStatus.FORBIDDEN;
@@ -35,8 +37,16 @@ import static org.springframework.security.config.http.SessionCreationPolicy.STA
 @ComponentScan("com.vedrax.security")
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
-    @Value("${base.service.path}")
-    private String basePath;
+    //@Value("${base.service.path}")
+    //private String basePath;
+
+    private static final RequestMatcher PUBLIC_URLS = new OrRequestMatcher(
+            new AntPathRequestMatcher("/api/public/**")
+    );
+
+    private static final RequestMatcher PROTECTED_URLS = new NegatedRequestMatcher(PUBLIC_URLS);
+
+    /*
 
     private static final RequestMatcher PUBLIC_URLS = new OrRequestMatcher(
             new AntPathRequestMatcher("/um/public/**"),
@@ -52,20 +62,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             new AntPathRequestMatcher("/assessment/admin/**"),
             new AntPathRequestMatcher("/pdt/admin/**"),
             new AntPathRequestMatcher("/ab/admin/**"));
-
-    /*
-    private final RequestMatcher API_URLS = new OrRequestMatcher(
-            new AntPathRequestMatcher("/um/api/**"),
-            new AntPathRequestMatcher("/assessment/api/**"),
-            new AntPathRequestMatcher("/pdt/api/**"),
-            new AntPathRequestMatcher("/ab/api/**"));
-
-    private final RequestMatcher ADMIN_URLS = new OrRequestMatcher(
-            new AntPathRequestMatcher("/um/admin/**"),
-            new AntPathRequestMatcher("/assessment/admin/**"),
-            new AntPathRequestMatcher("/pdt/admin/**"),
-            new AntPathRequestMatcher("/ab/admin/**"));
-
      */
 
     private AuthenticationProvider provider;
@@ -73,6 +69,21 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     public SecurityConfig(final AuthenticationProvider provider) {
         super();
         this.provider = Objects.requireNonNull(provider);
+    }
+
+    @Bean
+    public AuthenticationFilter authenticationFilter() throws Exception {
+        final AuthenticationFilter filter = new AuthenticationFilter(PROTECTED_URLS);
+        filter.setAuthenticationManager(authenticationManager());
+        filter.setAuthenticationSuccessHandler(successHandler());
+        return filter;
+    }
+
+    @Bean
+    public SimpleUrlAuthenticationSuccessHandler successHandler() {
+        final SimpleUrlAuthenticationSuccessHandler successHandler = new SimpleUrlAuthenticationSuccessHandler();
+        successHandler.setRedirectStrategy(new NoRedirectStrategy());
+        return successHandler;
     }
 
     @Override
@@ -87,6 +98,43 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         web.ignoring().requestMatchers(PUBLIC_URLS);
     }
 
+    @Override
+    protected void configure(HttpSecurity http) throws Exception {
+        //Disable CSRF
+        http = http.csrf().disable();
+
+        // set session management to stateless
+        http = http
+                .sessionManagement()
+                .sessionCreationPolicy(STATELESS)
+                .and();
+
+        //set unauthorized requests exception handler
+        http = http
+                .exceptionHandling()
+                .authenticationEntryPoint(
+                        (request, response, ex) -> response.sendError(
+                                HttpServletResponse.SC_UNAUTHORIZED,
+                                ex.getMessage()
+                        ))
+                .and();
+
+        // Set permissions on endpoints
+        http.authorizeRequests()
+                // Our public endpoints
+                .requestMatchers(PUBLIC_URLS).permitAll()
+                // Our private endpoints
+                .antMatchers("/api/admin/**").hasRole("ADMIN")
+                .anyRequest().authenticated();
+
+        // Add JWT token filter
+        http.addFilterBefore(
+                authenticationFilter(),
+                AnonymousAuthenticationFilter.class);
+
+    }
+
+    /*
     @Override
     protected void configure(final HttpSecurity http) throws Exception {
         http
@@ -136,11 +184,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         return successHandler;
     }
 
-    @Bean
-    public FilterRegistrationBean<AuthenticationFilter> disableAutoRegistration(final AuthenticationFilter filter) {
-        final FilterRegistrationBean<AuthenticationFilter> registration = new FilterRegistrationBean<>(filter);
-        registration.setEnabled(false);
-        return registration;
-    }
+     */
 
 }
