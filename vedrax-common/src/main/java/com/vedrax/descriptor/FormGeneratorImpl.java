@@ -68,9 +68,6 @@ public class FormGeneratorImpl implements FormGenerator {
     //set button label
     initFormButtonsLabel(formDescriptor, locale);
 
-    //set success message
-    initSuccessMessage(formDto.getSource(), formDto.getDto(), formDescriptor, locale);
-
     return formDescriptor;
   }
 
