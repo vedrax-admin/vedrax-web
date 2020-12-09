@@ -223,9 +223,24 @@ public class ControlManager {
                     .is(NotEmpty.class).then(validation -> fromValidation(ValidationType.required, true, formControlDescriptor, packageName))
                     .is(NotBlank.class).then(validation -> fromValidation(ValidationType.required, true, formControlDescriptor, packageName))
                     .is(Autocomplete.class).then(autocomplete -> fromAutocomplete(autocomplete, formControlDescriptor))
-                    .is(Pattern.class).then(validation -> fromValidation(ValidationType.pattern, validation.regexp(), formControlDescriptor, packageName));
+                    .is(Pattern.class).then(validation -> fromValidation(ValidationType.pattern, validation.regexp(), formControlDescriptor, packageName))
+                    .is(Upload.class).then(upload -> fromUpload(upload, formControlDescriptor));
         }
 
+    }
+
+    /**
+     * Method for generating upload file component
+     *
+     * @param upload                the upload annotation
+     * @param formControlDescriptor the form control descriptor
+     */
+    private void fromUpload(Upload upload, FormControlDescriptor formControlDescriptor) {
+        formControlDescriptor.setControlType(String.valueOf(ControlType.upload));
+
+        if (upload.acceptedTypes().length > 0) {
+            formControlDescriptor.setControlAccept(Arrays.asList(upload.acceptedTypes()));
+        }
     }
 
     /**

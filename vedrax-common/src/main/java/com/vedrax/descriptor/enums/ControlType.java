@@ -15,5 +15,6 @@ public enum ControlType {
   search,
   matrix,
   nvp,
-  autocomplete
+  autocomplete,
+  upload
 }
