@@ -23,6 +23,7 @@ public class FormDescriptor {
   private List<EndpointDescriptor> lovs = new ArrayList<>();
   private String endpoint;
   private String method;
+  private Boolean multipart = false;
   private String successUrl;
   private String submitLabel;
   private String cancelLabel;

@@ -46,7 +46,7 @@ public class FormGeneratorImpl implements FormGenerator {
     formDescriptor.setTitle(formDto.getTitle());
     formDescriptor.setSuccessUrl(formDto.getSuccessURL());
     formDescriptor.setSuccessMessage(formDto.getSuccessMessage());
-
+    formDescriptor.setMultipart(formDto.getMultipart());
 
     //set group if any
     GroupManager groupManager = new GroupManager(formDto.getDto());

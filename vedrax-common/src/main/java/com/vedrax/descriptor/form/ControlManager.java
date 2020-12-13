@@ -13,6 +13,7 @@ import com.vedrax.util.ReflectUtil;
 import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.reflect.FieldUtils;
 import org.springframework.context.MessageSource;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.constraints.*;
 import java.lang.annotation.Annotation;
@@ -140,6 +141,8 @@ public class ControlManager {
             setAsNumber(formControlDescriptor);
         } else if (Boolean.class.isAssignableFrom(type)) {
             formControlDescriptor.setControlType(String.valueOf(ControlType.checkbox));
+        } else if (MultipartFile.class.isAssignableFrom(type)){
+            formControlDescriptor.setControlType(String.valueOf(ControlType.upload));
         } else {
             formControlDescriptor.setControlType(String.valueOf(ControlType.input));
         }

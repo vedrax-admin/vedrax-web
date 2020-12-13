@@ -9,6 +9,7 @@ public class FormDto {
     private final Class<?> dto;
     private final String endpoint;
     private String method;
+    private Boolean multipart;
     private Object source;
     private boolean updateTable;
     private String title;
@@ -19,10 +20,16 @@ public class FormDto {
       this.dto = dto;
       this.endpoint = endpoint;
       this.updateTable = false;
+      this.multipart = false;
     }
 
     public Builder withMethod(String method){
       this.method = method;
+      return this;
+    }
+
+    public Builder withMultipart(Boolean multipart){
+      this.multipart = multipart;
       return this;
     }
 
@@ -56,6 +63,7 @@ public class FormDto {
       formDto.dto = this.dto;
       formDto.endpoint = this.endpoint;
       formDto.method = this.method;
+      formDto.multipart = this.multipart;
       formDto.source = this.source;
       formDto.updateTable = this.updateTable;
       formDto.title = this.title;
@@ -69,6 +77,7 @@ public class FormDto {
   private Class<?> dto;
   private String endpoint;
   private String method;
+  private Boolean multipart;
   private Object source;
   private boolean updateTable;
   private String title;
