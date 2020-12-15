@@ -33,6 +33,7 @@ public class FormControlDescriptor {
   private AutocompleteDescriptor controlSearch;
   @JsonInclude(JsonInclude.Include.NON_EMPTY)
   private List<String> controlAccept = new ArrayList<>();
+  private Integer controlSizeLimit;
 
   public boolean addProperty(PropertyDescriptor propertyDescriptor) {
     return controlProperties.add(propertyDescriptor);

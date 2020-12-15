@@ -243,6 +243,7 @@ public class ControlManager {
 
         if (upload.acceptedTypes().length > 0) {
             formControlDescriptor.setControlAccept(Arrays.asList(upload.acceptedTypes()));
+            formControlDescriptor.setControlSizeLimit(upload.sizeLimit());
         }
     }
 

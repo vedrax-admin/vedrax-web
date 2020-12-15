@@ -9,4 +9,5 @@ import java.lang.annotation.Target;
 @Target(ElementType.FIELD)
 public @interface Upload {
     String[] acceptedTypes() default {};
+    int sizeLimit() default 0;
 }
