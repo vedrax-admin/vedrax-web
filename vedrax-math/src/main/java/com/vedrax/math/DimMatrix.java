@@ -4,9 +4,13 @@ import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.math.NumberUtils;
 
 import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 public class DimMatrix implements IMatrix {
+
+    private static final Logger LOG = Logger.getLogger(DimMatrix.class.getName());
 
     private Map<String, Map<String, String>> data = new HashMap<>();
     private Map<String, String> params = new HashMap<>();
@@ -72,7 +76,11 @@ public class DimMatrix implements IMatrix {
         Validate.notNull(column, "column must be provided");
         Validate.notNull(row, "row must be provided");
         Validate.notNull(value, "value must be provided");
+
+        LOG.log(Level.WARNING, String.format("COLUMN: %s | ROW: %s | VALUE: %s", column, row, value));
+
         checkIfNumber(column, row, value);
+
 
         Map<String, String> values = data.computeIfAbsent(column, k -> new HashMap<>());
 
