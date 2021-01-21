@@ -9,4 +9,8 @@ public interface GCPTaskService {
     void createTaskWithName(String taskId,
                             String uri,
                             Map<String, String> params);
+
+    void createDelayedTask(String uri,
+                      int seconds,
+                      Map<String, String> params);
 }

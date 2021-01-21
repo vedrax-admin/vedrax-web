@@ -3,10 +3,13 @@ package com.vedrax.gcp;
 import com.google.cloud.tasks.v2.*;
 
 import com.google.protobuf.ByteString;
+import com.google.protobuf.Timestamp;
 import com.vedrax.security.TokenUtility;
 import org.apache.commons.lang3.Validate;
 
 import java.io.IOException;
+import java.time.Clock;
+import java.time.Instant;
 import java.util.Map;
 import java.util.Objects;
 import java.util.logging.Level;
@@ -57,6 +60,7 @@ public class GCPTask implements GCPTaskService {
                                     .setBody(ByteString.copyFromUtf8(mapToJson(params)))
                                     .setHttpMethod(HttpMethod.POST)
                                     .build())
+
                     .build();
 
             // Add the task to the default queue.
@@ -86,6 +90,39 @@ public class GCPTask implements GCPTaskService {
             // Construct the task body.
             Task task = Task.newBuilder()
                     .setName(taskName)
+                    .setAppEngineHttpRequest(
+                            AppEngineHttpRequest.newBuilder()
+                                    .putHeaders(AUTHORIZATION_HEADER, String.format("Bearer %s", TokenUtility.getAdminToken()))
+                                    .setRelativeUri(uri)
+                                    .setBody(ByteString.copyFromUtf8(mapToJson(params)))
+                                    .setHttpMethod(HttpMethod.POST)
+                                    .build())
+                    .build();
+
+            // Add the task to the default queue.
+            Task taskResponse = client.createTask(fullQualifiedQueueName, task);
+
+            LOG.log(Level.INFO, String.format("Task with name [%s] initiated...", taskResponse.getName()));
+        } catch (IOException ex) {
+            LOG.log(Level.SEVERE, "A task initiation has failed", ex);
+        }
+    }
+
+    @Override
+    public void createDelayedTask(String uri,
+                                   int seconds,
+                                   Map<String, String> params) {
+        Validate.notNull(uri, "uri must be provided");
+
+        // Construct the fully qualified queue name.
+        String fullQualifiedQueueName = getFullQualifiedQueueName();
+
+        try (CloudTasksClient client = CloudTasksClient.create()) {
+
+            // Construct the task body.
+            Task task = Task.newBuilder()
+                    .setScheduleTime(Timestamp.newBuilder()
+                            .setSeconds(Instant.now(Clock.systemUTC()).plusSeconds(seconds).getEpochSecond()))
                     .setAppEngineHttpRequest(
                             AppEngineHttpRequest.newBuilder()
                                     .putHeaders(AUTHORIZATION_HEADER, String.format("Bearer %s", TokenUtility.getAdminToken()))
