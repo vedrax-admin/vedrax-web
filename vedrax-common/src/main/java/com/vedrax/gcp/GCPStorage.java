@@ -40,6 +40,14 @@ public class GCPStorage implements GCPStorageService {
         blob.ifPresent(value -> value.downloadTo(output));
     }
 
+    public void downloadFiles(String prefix, OutputStream output){
+        Validate.notNull(prefix, "objectName must be provided");
+        Validate.notNull(output, "output must be provided");
+
+        //storage
+
+    }
+
     @Override
     public Optional<Blob> getBlob(String objectName) {
         Validate.notNull(objectName, "objectName must be provided");

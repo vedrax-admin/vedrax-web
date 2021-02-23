@@ -1,6 +1,5 @@
 package com.vedrax.pdf;
 
-import com.lowagie.text.DocumentException;
 import org.apache.commons.lang3.Validate;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
@@ -8,9 +7,7 @@ import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver;
 import org.xhtmlrenderer.pdf.ITextRenderer;
 
 import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
+import java.nio.file.FileSystems;
 import java.util.Locale;
 import java.util.Map;
 import java.util.logging.Level;
@@ -68,7 +65,7 @@ public class PDFGenerator {
      * @param template Source template.
      * @param model    The data for the template.
      */
-    public byte[] generate(String template, Map<String, Object> model, Locale locale) throws DocumentException {
+    public byte[] generate(String template, Map<String, Object> model, Locale locale) throws Exception {
         Validate.notNull(template, "template must be provided");
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -84,7 +81,15 @@ public class PDFGenerator {
 
         ITextRenderer renderer = new ITextRenderer();
 
-        renderer.setDocumentFromString(htmlContent);
+        String baseUrl = FileSystems
+                .getDefault()
+                .getPath("src", "main", "resources")
+                .toUri()
+                .toURL()
+                .toString();
+        renderer.setDocumentFromString(htmlContent, baseUrl);
+
+        //renderer.setDocumentFromString(htmlContent);
         renderer.layout();
         renderer.createPDF(out);
 
