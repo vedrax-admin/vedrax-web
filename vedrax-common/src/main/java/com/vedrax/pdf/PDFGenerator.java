@@ -53,7 +53,6 @@ public class PDFGenerator {
         if (templateEngine == null) {
             templateEngine = new TemplateEngine();
             templateEngine.setTemplateResolver(templateResolver);
-
         }
 
         return templateEngine;
@@ -81,6 +80,7 @@ public class PDFGenerator {
 
         ITextRenderer renderer = new ITextRenderer();
 
+        /*
         String baseUrl = FileSystems
                 .getDefault()
                 .getPath("src", "main", "resources")
@@ -89,7 +89,9 @@ public class PDFGenerator {
                 .toString();
         renderer.setDocumentFromString(htmlContent, baseUrl);
 
-        //renderer.setDocumentFromString(htmlContent);
+         */
+
+        renderer.setDocumentFromString(htmlContent);
         renderer.layout();
         renderer.createPDF(out);
 
