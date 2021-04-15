@@ -36,9 +36,33 @@ public class DateUtils {
     public static LocalDate convertToLocalDate(Date dateToConvert) {
         Validate.notNull(dateToConvert, "Null dateToConvert not allowed");
 
-        return dateToConvert.toInstant()
+        //avoid UnsupportedOperationException for java.sql.Date
+        Date safeDate = new Date(dateToConvert.getTime());
+
+        return safeDate.toInstant()
                 .atZone(ZoneId.systemDefault())
                 .toLocalDate();
+    }
+
+    /**
+     * Method for returning the number of days between 2 dates
+     *
+     * @param start the starting date
+     * @param end   the ending date
+     * @return number of days
+     */
+    public static long daysBetween(Date start, Date end) {
+        Validate.notNull(start, "Null start not allowed");
+        Validate.notNull(end, "Null end not allowed");
+
+        LocalDate startLD = convertToLocalDate(start);
+        LocalDate endLD = convertToLocalDate(end);
+
+        if (startLD.isAfter(endLD)) {
+            throw new IllegalArgumentException("start date must be before end date.");
+        }
+
+        return startLD.until(endLD, DAYS);
     }
 
     /**
@@ -117,7 +141,10 @@ public class DateUtils {
     public static LocalDateTime convertToLocalDateTime(Date dateToConvert) {
         Validate.notNull(dateToConvert, "Null dateToConvert not allowed");
 
-        return dateToConvert.toInstant()
+        //avoid UnsupportedOperationException for java.sql.Date
+        Date safeDate = new Date(dateToConvert.getTime());
+
+        return safeDate.toInstant()
                 .atZone(ZoneId.systemDefault())
                 .toLocalDateTime();
     }
@@ -222,7 +249,7 @@ public class DateUtils {
     }
 
     public static String printDateWithFormat(Date date, String format) {
-        if(date == null){
+        if (date == null) {
             return "";
         }
 
