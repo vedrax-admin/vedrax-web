@@ -5,10 +5,7 @@ import org.springframework.util.Assert;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.time.DateTimeException;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
+import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.time.temporal.ChronoUnit;
@@ -16,6 +13,10 @@ import java.time.temporal.TemporalAdjusters;
 import java.time.temporal.TemporalUnit;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
+import java.util.Optional;
+import java.util.function.Predicate;
+import java.util.stream.Stream;
 
 import static java.time.temporal.ChronoUnit.DAYS;
 import static java.time.temporal.ChronoUnit.MONTHS;
@@ -63,6 +64,29 @@ public class DateUtils {
         }
 
         return startLD.until(endLD, DAYS);
+    }
+
+    /**
+     * Count business days between 2 days
+     *
+     * @param start start date
+     * @param end   end date
+     * @return number of business days between 2 dates
+     */
+    public static long countBusinessDaysBetween(Date start, Date end) {
+        Validate.notNull(start, "Null start not allowed");
+        Validate.notNull(end, "Null end not allowed");
+
+        LocalDate startDate = convertToLocalDate(start);
+        LocalDate endDate = convertToLocalDate(end);
+
+        Predicate<LocalDate> isWeekend = date -> date.getDayOfWeek() == DayOfWeek.SATURDAY
+                || date.getDayOfWeek() == DayOfWeek.SUNDAY;
+
+        long daysBetween = ChronoUnit.DAYS.between(startDate, endDate);
+
+        return Stream.iterate(startDate, date -> date.plusDays(1)).limit(daysBetween)
+                .filter(isWeekend.negate()).count();
     }
 
     /**
