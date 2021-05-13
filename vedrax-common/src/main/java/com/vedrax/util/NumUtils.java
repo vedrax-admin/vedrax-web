@@ -18,7 +18,7 @@ public class NumUtils {
         return NumberUtils.parseNumber(value, BigDecimal.class);
     }
 
-    public static String toNumberFormat(BigDecimal n, int decimal){
+    public static String toNumberFormat(BigDecimal n, int decimal) {
         Validate.isTrue(decimal >= 0, "scale must be greater than 0");
 
         if (n == null) {
@@ -128,6 +128,10 @@ public class NumUtils {
             return BigDecimal.ZERO;
         }
         return number;
+    }
+
+    public static BigDecimal divide(int first, int second) {
+        return BigDecimal.valueOf(first).divide(BigDecimal.valueOf(second),2, BigDecimal.ROUND_DOWN);
     }
 
 }
