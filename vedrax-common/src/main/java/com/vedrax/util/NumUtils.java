@@ -131,7 +131,12 @@ public class NumUtils {
     }
 
     public static BigDecimal divide(int first, int second) {
-        return BigDecimal.valueOf(first).divide(BigDecimal.valueOf(second),2, BigDecimal.ROUND_DOWN);
+
+        if (second == 0) {
+            return BigDecimal.ZERO;
+        }
+
+        return BigDecimal.valueOf(first).divide(BigDecimal.valueOf(second), 2, BigDecimal.ROUND_DOWN);
     }
 
 }
