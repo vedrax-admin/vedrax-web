@@ -10,6 +10,7 @@ import com.vedrax.descriptor.lov.EnumWithValue;
 import com.vedrax.descriptor.lov.NVP;
 import com.vedrax.util.MessageUtil;
 import com.vedrax.util.ReflectUtil;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.reflect.FieldUtils;
 import org.springframework.context.MessageSource;
@@ -141,7 +142,7 @@ public class ControlManager {
             setAsNumber(formControlDescriptor);
         } else if (Boolean.class.isAssignableFrom(type)) {
             formControlDescriptor.setControlType(String.valueOf(ControlType.checkbox));
-        } else if (MultipartFile.class.isAssignableFrom(type)){
+        } else if (MultipartFile.class.isAssignableFrom(type)) {
             formControlDescriptor.setControlType(String.valueOf(ControlType.upload));
         } else {
             formControlDescriptor.setControlType(String.valueOf(ControlType.input));
@@ -292,6 +293,8 @@ public class ControlManager {
         AutocompleteDescriptor autocompleteDescriptor = new AutocompleteDescriptor();
         autocompleteDescriptor.setEndpoint(autocomplete.endpoint());
         autocompleteDescriptor.setDisplayKey(autocomplete.displayAttribute());
+
+        //set params
         List<NVP> params = new ArrayList<>();
 
         for (String param : autocomplete.params()) {
@@ -304,15 +307,19 @@ public class ControlManager {
 
         autocompleteDescriptor.setDefaultParams(params);
 
-        List<NVP> filters = new ArrayList<>();
-        for (String filter : autocomplete.filters()) {
-            NVP nameValuePair = new NVP();
-            nameValuePair.setKey(filter);
-            nameValuePair.setValue(MessageUtil.getMessageFromKey(messageSource, "filter." + filter, null, locale));
-            filters.add(nameValuePair);
-        }
+        //set filters
+        for (SearchFilter filter : autocomplete.filters()) {
+            String controlName = filter.controlName();
 
-        autocompleteDescriptor.setFilters(filters);
+            FormControlDescriptor searchDescriptor = new FormControlDescriptor();
+            searchDescriptor.setControlName(controlName);
+            searchDescriptor.setControlLabel(MessageUtil.getMessageFromKey(messageSource, "filter." + controlName, null, locale));
+            searchDescriptor.setControlType(filter.controlType());
+            autocompleteDescriptor.getFilters().addControl(searchDescriptor);
+            if (StringUtils.isNotEmpty(filter.endpoint())) {
+                autocompleteDescriptor.getFilters().addEndpoint(new EndpointDescriptor(controlName, filter.endpoint()));
+            }
+        }
 
         formControlDescriptor.setControlSearch(autocompleteDescriptor);
     }

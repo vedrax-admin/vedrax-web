@@ -8,11 +8,23 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Data
-@NoArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class SearchDescriptor {
   @JsonInclude(JsonInclude.Include.NON_EMPTY)
-  private List<FormControlDescriptor> controls = new ArrayList<>();
+  private List<FormControlDescriptor> controls;
   @JsonInclude(JsonInclude.Include.NON_EMPTY)
-  private List<EndpointDescriptor> lovs = new ArrayList<>();
+  private List<EndpointDescriptor> lovs;
+
+  public SearchDescriptor() {
+    this.controls = new ArrayList<>();
+    this.lovs = new ArrayList<>();
+  }
+
+  public void  addControl(FormControlDescriptor ctrl){
+    this.controls.add(ctrl);
+  }
+
+  public void addEndpoint(EndpointDescriptor endpoint){
+    this.lovs.add(endpoint);
+  }
 }

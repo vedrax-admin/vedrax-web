@@ -9,12 +9,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Data
-@NoArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class AutocompleteDescriptor {
 
     private String endpoint;
     private String displayKey;
-    private List<NVP> defaultParams = new ArrayList<>();
-    private List<NVP> filters = new ArrayList<>();
+    private List<NVP> defaultParams;
+    private SearchDescriptor filters;
+
+    public AutocompleteDescriptor() {
+        this.defaultParams = new ArrayList<>();
+        this.filters = new SearchDescriptor();
+    }
 }
