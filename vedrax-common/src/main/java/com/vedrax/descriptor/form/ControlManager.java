@@ -39,7 +39,7 @@ public class ControlManager {
         Validate.notNull(formDto, "form dto must be provided");
         Validate.notNull(formDescriptor, "form descriptor must be provided");
 
-        List<FormControlDescriptor> controls = getControls(formDto.getDto(), formDto.getSource());
+        List<FormControlDescriptor> controls = getControls(formDto.getDto(), formDto.getSource(), null);
         formDescriptor.setControls(controls);
 
         return controls.stream().map(FormControlDescriptor::getControlName).collect(Collectors.toList());
@@ -52,7 +52,7 @@ public class ControlManager {
      * @param source      the source
      * @return list of controls descriptors
      */
-    private List<FormControlDescriptor> getControls(Class<?> sourceClass, Object source) {
+    private List<FormControlDescriptor> getControls(Class<?> sourceClass, Object source, Endpoint[] endpoints) {
         Validate.notNull(sourceClass, "source class must be provided");
 
         String packageName = sourceClass.getPackage().getName();
@@ -71,12 +71,30 @@ public class ControlManager {
                 initControlWithType(field, formControlDescriptor);
                 initControlWithAnnotations(field, formControlDescriptor, packageName);
                 setControlValue(source, formControlDescriptor);
+                initWithEndpoint(formControlDescriptor, endpoints);
                 controls.add(formControlDescriptor);
             }
 
         }
 
         return controls;
+    }
+
+    private void initWithEndpoint(FormControlDescriptor formControlDescriptor, Endpoint[] endpoints){
+        Optional<Endpoint> endpointOpt = getEndpoint(endpoints, formControlDescriptor.getControlName());
+        endpointOpt.ifPresent(endpoint -> formControlDescriptor.setEndpointForOptions(endpoint.url()));
+    }
+
+    private Optional<Endpoint> getEndpoint(Endpoint[] endpoints, String controlName){
+        if(endpoints == null){
+            return Optional.empty();
+        }
+        List<Endpoint> endpointAsList = Arrays.asList(endpoints);
+        Endpoint endpoint = endpointAsList.stream()
+                .filter(url -> controlName.equalsIgnoreCase(url.key()))
+                .findFirst()
+                .orElse(null);
+        return Optional.ofNullable(endpoint);
     }
 
     /**
@@ -315,10 +333,10 @@ public class ControlManager {
             searchDescriptor.setControlName(controlName);
             searchDescriptor.setControlLabel(MessageUtil.getMessageFromKey(messageSource, "filter." + controlName, null, locale));
             searchDescriptor.setControlType(filter.controlType());
-            autocompleteDescriptor.getFilters().addControl(searchDescriptor);
             if (StringUtils.isNotEmpty(filter.endpoint())) {
-                autocompleteDescriptor.getFilters().addEndpoint(new EndpointDescriptor(controlName, filter.endpoint()));
+                searchDescriptor.setEndpointForOptions(filter.endpoint());
             }
+            autocompleteDescriptor.addFilter(searchDescriptor);
         }
 
         formControlDescriptor.setControlSearch(autocompleteDescriptor);
@@ -331,7 +349,7 @@ public class ControlManager {
      * @param formControlDescriptor the form control descriptor
      */
     private void fromChildren(Children children, FormControlDescriptor formControlDescriptor) {
-        List<FormControlDescriptor> controls = getControls(children.type(), null);
+        List<FormControlDescriptor> controls = getControls(children.type(), null, children.endpoints());
         formControlDescriptor.setControlChildren(controls);
         formControlDescriptor.setControlKeysAsTitle(Arrays.asList(children.controlKeysAsTitle()));
         formControlDescriptor.setControlType(String.valueOf(ControlType.arrayOfControls));
@@ -346,6 +364,9 @@ public class ControlManager {
     private void fromComponent(Component component, FormControlDescriptor formControlDescriptor) {
         //override the component type by default
         formControlDescriptor.setControlType(component.type());
+        if(StringUtils.isNotEmpty(component.endpoint())){
+            formControlDescriptor.setEndpointForOptions(component.endpoint());
+        }
     }
 
     /**

@@ -15,10 +15,14 @@ public class AutocompleteDescriptor {
     private String endpoint;
     private String displayKey;
     private List<NVP> defaultParams;
-    private SearchDescriptor filters;
+    private List<FormControlDescriptor> filters;
 
     public AutocompleteDescriptor() {
         this.defaultParams = new ArrayList<>();
-        this.filters = new SearchDescriptor();
+        this.filters = new ArrayList<>();
+    }
+
+    public void addFilter(FormControlDescriptor control){
+        this.filters.add(control);
     }
 }

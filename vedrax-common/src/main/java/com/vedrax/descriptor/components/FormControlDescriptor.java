@@ -34,6 +34,8 @@ public class FormControlDescriptor {
   @JsonInclude(JsonInclude.Include.NON_EMPTY)
   private List<String> controlAccept = new ArrayList<>();
   private Integer controlSizeLimit;
+  private String endpointForOptions;
+
 
   public boolean addProperty(PropertyDescriptor propertyDescriptor) {
     return controlProperties.add(propertyDescriptor);

@@ -13,4 +13,5 @@ import java.lang.annotation.Target;
 public @interface Children {
   String[] controlKeysAsTitle();
   Class<?> type();
+  Endpoint[] endpoints() default {};
 }

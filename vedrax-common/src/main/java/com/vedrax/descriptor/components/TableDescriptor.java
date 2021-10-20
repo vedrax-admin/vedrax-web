@@ -19,7 +19,7 @@ public class TableDescriptor {
   private Boolean paginated;
   private Boolean loadOnInit;
   private String path;
-  private SearchDescriptor search;
+  private List<FormControlDescriptor> filters;
   private List<ColumnDescriptor> columns = new ArrayList<>();
   @JsonInclude(JsonInclude.Include.NON_EMPTY)
   private List<?> values = new ArrayList<>();
